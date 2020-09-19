@@ -13,6 +13,7 @@ def hypotest(
     par_bounds=None,
     fixed_params=None,
     qtilde=False,
+    use_q0=False,
     **kwargs,
 ):
     r"""
@@ -45,6 +46,9 @@ def hypotest(
         qtilde (Bool): When ``True`` perform the calculation using the alternative
          test statistic, :math:`\tilde{q}_{\mu}`, as defined under the Wald
          approximation in Equation (62) of :xref:`arXiv:1007.1727`.
+        use_q0 (Bool): When ``True`` perform the calculation using the discovery
+        test statistic, :math:`q_0`, as defined in Equation (12) of
+        :xref:`arXiv:1007.1727`.
 
     Keyword Args:
         return_tail_probs (bool): Bool for returning :math:`\mathrm{CL}_{s+b}` and :math:`\mathrm{CL}_{b}`
@@ -129,7 +133,7 @@ def hypotest(
     fixed_params = fixed_params or pdf.config.suggested_fixed()
 
     calc = AsymptoticCalculator(
-        data, pdf, init_pars, par_bounds, fixed_params, qtilde=qtilde
+        data, pdf, init_pars, par_bounds, fixed_params, qtilde=qtilde, use_q0=use_q0
     )
     teststat = calc.teststatistic(poi_test)
     sig_plus_bkg_distribution, b_only_distribution = calc.distributions(poi_test)
@@ -147,29 +151,38 @@ def hypotest(
     )
 
     _returns = [CLs]
+    if use_q0:
+        _returns = [CLsb]
+
     if kwargs.get('return_tail_probs'):
         _returns.append([CLsb, CLb])
+    if kwargs.get("return_expected_set") or kwargs.get("return_expected"):
+        n_sigma_list = [2, 1, 0, -1, -2]
+        if not kwargs.get("return_expected_set"):
+            n_sigma_list = [0]
     if kwargs.get('return_expected_set'):
         CLs_exp = []
-        for n_sigma in [2, 1, 0, -1, -2]:
+        for n_sigma in n_sigma_list:
 
             expected_bonly_teststat = b_only_distribution.expected_value(n_sigma)
 
-            CLs = sig_plus_bkg_distribution.pvalue(
-                expected_bonly_teststat
-            ) / b_only_distribution.pvalue(expected_bonly_teststat)
+            if not use_q0:
+                CLs = sig_plus_bkg_distribution.pvalue(
+                    expected_bonly_teststat
+                ) / b_only_distribution.pvalue(expected_bonly_teststat)
+            else:
+                # despite the name in this case this is the discovery p value
+                CLs = sig_plus_bkg_distribution.pvalue(expected_bonly_teststat)
             CLs_exp.append(tensorlib.astensor(CLs))
-        if kwargs.get('return_expected'):
-            _returns.append(CLs_exp[2])
-        _returns.append(CLs_exp)
-    elif kwargs.get('return_expected'):
-        n_sigma = 0
-        expected_bonly_teststat = b_only_distribution.expected_value(n_sigma)
 
-        CLs = sig_plus_bkg_distribution.pvalue(
-            expected_bonly_teststat
-        ) / b_only_distribution.pvalue(expected_bonly_teststat)
-        _returns.append(tensorlib.astensor(CLs))
+        if not kwargs.get('return_expected_set'):
+            # return only expected_set
+            _returns.append(CLs_exp[0])
+        else:
+            if kwargs.get('return_expected'):
+                # return both expected and expected_set
+                _returns.append(CLs_exp[2])
+            _returns.append(CLs_exp)
     # Enforce a consistent return type of the observed CLs
     return tuple(_returns) if len(_returns) > 1 else _returns[0]
 

@@ -9,7 +9,9 @@ Using the calculators hypothesis tests can then be performed.
 """
 from .mle import fixed_poi_fit
 from .. import get_backend
-from .test_statistics import qmu, qmu_tilde
+from .test_statistics import q0
+from .test_statistics import qmu
+from .test_statistics import qmu_tilde
 
 
 def generate_asimov_data(asimov_mu, data, pdf, init_pars, par_bounds, fixed_params):
@@ -129,6 +131,7 @@ class AsymptoticCalculator(object):
         par_bounds=None,
         fixed_params=None,
         qtilde=False,
+        use_q0=False,
     ):
         """
         Asymptotic Calculator.
@@ -152,6 +155,9 @@ class AsymptoticCalculator(object):
         self.fixed_params = fixed_params or pdf.config.suggested_fixed()
 
         self.qtilde = qtilde
+        self.use_q0 = use_q0
+        if qtilde and use_q0:
+            raise ValueError("Can't have `use_q0` together with `qtilde`")
         self.sqrtqmuA_v = None
 
     def distributions(self, poi_test):
@@ -184,19 +190,25 @@ class AsymptoticCalculator(object):
         """
         tensorlib, _ = get_backend()
 
-        teststat_func = qmu_tilde if self.qtilde else qmu
+        if self.use_q0:
+            teststat_func = q0
+            asimov_mu = 1.0
+        else:
+
+            def teststat_func(*args, **kwargs):
+                """make function signature without poi_test to be consistent with q0"""
+                args = tuple([poi_test] + list(args))
+                if self.qtilde:
+                    return qmu_tilde(*args, **kwargs)
+                else:
+                    return qmu(*args, **kwargs)
+
+            asimov_mu = 0.0
 
         qmu_v = teststat_func(
-            poi_test,
-            self.data,
-            self.pdf,
-            self.init_pars,
-            self.par_bounds,
-            self.fixed_params,
+            self.data, self.pdf, self.init_pars, self.par_bounds, self.fixed_params
         )
         sqrtqmu_v = tensorlib.sqrt(qmu_v)
-
-        asimov_mu = 0.0
         asimov_data = generate_asimov_data(
             asimov_mu,
             self.data,
@@ -206,16 +218,11 @@ class AsymptoticCalculator(object):
             self.fixed_params,
         )
         qmuA_v = teststat_func(
-            poi_test,
-            asimov_data,
-            self.pdf,
-            self.init_pars,
-            self.par_bounds,
-            self.fixed_params,
+            asimov_data, self.pdf, self.init_pars, self.par_bounds, self.fixed_params
         )
         self.sqrtqmuA_v = tensorlib.sqrt(qmuA_v)
 
-        if not self.qtilde:  # qmu
+        if not self.qtilde:  # qmu or q0
             teststat = sqrtqmu_v - self.sqrtqmuA_v
         else:  # qtilde
 

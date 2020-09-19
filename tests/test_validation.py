@@ -62,6 +62,28 @@ def expected_result_1bin_shapesys():
 
 
 @pytest.fixture(scope='module')
+def source_1bin_example1_p0():
+    with open('validation/data/1bin_example1_p0.json') as read_json:
+        return json.load(read_json)
+
+
+@pytest.fixture(scope='module')
+def expected_result_1bin_p0_shapesys(mu=0.0):
+    if mu == 0.0:
+        expected_result = {
+            "exp": [
+                1.2204714710520103e-05,
+                0.0006405237426269669,
+                0.013202867164405075,
+                0.11119604157594337,
+                0.41286079728391695,
+            ],
+            "obs": 0.003936883191585841,
+        }
+    return expected_result
+
+
+@pytest.fixture(scope='module')
 def source_1bin_lumi():
     with open('validation/data/1bin_lumi.json') as read_json:
         return json.load(read_json)
@@ -565,7 +587,9 @@ def expected_result_2bin_2channel_coupledshapefactor():
     return expected_result
 
 
-def validate_hypotest(pdf, data, mu_test, expected_result, tolerance=1e-6):
+def validate_hypotest(
+    pdf, data, mu_test, expected_result, use_q0=False, tolerance=1e-6
+):
     init_pars = pdf.config.suggested_init()
     par_bounds = pdf.config.suggested_bounds()
 
@@ -577,6 +601,7 @@ def validate_hypotest(pdf, data, mu_test, expected_result, tolerance=1e-6):
         par_bounds,
         return_expected_set=True,
         qtilde=False,
+        use_q0=use_q0,
     )
     assert abs(CLs_obs - expected_result['obs']) / expected_result['obs'] < tolerance
     for result, expected in zip(CLs_exp_set, expected_result['exp']):
@@ -586,6 +611,7 @@ def validate_hypotest(pdf, data, mu_test, expected_result, tolerance=1e-6):
 @pytest.fixture(
     params=[
         ('1bin_shapesys', {'init_pars': 2, 'par_bounds': 2}, 1e-6),
+        ('1bin_shapesys_q0', {'init_pars': 2, 'par_bounds': 2}, 3e-4),
         ('1bin_lumi', {'init_pars': 2, 'par_bounds': 2}, 4e-6),
         ('1bin_normsys', {'init_pars': 2, 'par_bounds': 2}, 2e-9),
         ('2bin_histosys', {'init_pars': 2, 'par_bounds': 2}, 8e-5),
@@ -604,6 +630,7 @@ def validate_hypotest(pdf, data, mu_test, expected_result, tolerance=1e-6):
     ],
     ids=[
         '1bin_shapesys_mu1',
+        '1bin_shapesys_q0_mu0',
         '1bin_lumi_mu1',
         '1bin_normsys_mu1',
         '2bin_histosys_mu1',
@@ -652,8 +679,18 @@ def test_validation(setup_and_tolerance):
         len(pdf.config.suggested_bounds()) == setup['expected']['config']['par_bounds']
     )
 
+    # for now lets assume we want to test q0 when mu=0
+    use_q0 = False
+    if setup['mu'] == 0:
+        use_q0 = True
+
     validate_hypotest(
-        pdf, data, setup['mu'], setup['expected']['result'], tolerance=tolerance
+        pdf,
+        data,
+        setup['mu'],
+        setup['expected']['result'],
+        use_q0=use_q0,
+        tolerance=tolerance,
     )
 
 
