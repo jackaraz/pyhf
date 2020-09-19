@@ -35,7 +35,7 @@ def q0(data, pdf, init_pars, par_bounds):
         >>> init_pars = model.config.suggested_init()
         >>> par_bounds = model.config.suggested_bounds()
         >>> pyhf.infer.test_statistics.q0(data, model, init_pars, par_bounds)
-        2.983394486834868
+        2.983394471437407
 
     Args:
         data (Tensor): The data to be considered

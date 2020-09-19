@@ -62,7 +62,7 @@ def expected_result_1bin_shapesys():
 
 
 @pytest.fixture(scope='module')
-def source_1bin_example1_p0():
+def source_1bin_shapesys_p0():
     with open('validation/data/1bin_example1_p0.json') as read_json:
         return json.load(read_json)
 
