@@ -3,8 +3,8 @@ from setuptools import setup
 extras_require = {
     'shellcomplete': ['click_completion'],
     'tensorflow': [
-        'tensorflow~=2.2.0',  # TensorFlow minor releases are as volatile as major
-        'tensorflow-probability~=0.10.0',
+        'tensorflow~=2.3.0',  # TensorFlow minor releases are as volatile as major
+        'tensorflow-probability~=0.11.0',
     ],
     'torch': ['torch~=1.7'],
     'jax': ['jax~=0.2.4', 'jaxlib~=0.1.56'],
