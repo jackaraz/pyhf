@@ -221,10 +221,10 @@ class _ModelConfig(_ChannelSummaryMixin):
             'modifier_settings', default_modifier_settings
         )
 
-        if config_kwargs:
-            raise exceptions.Unsupported(
-                f"Unsupported options were passed in: {list(config_kwargs.keys())}."
-            )
+        # if config_kwargs:
+        #     raise exceptions.Unsupported(
+        #         f"Unsupported options were passed in: {list(config_kwargs.keys())}."
+        #     )
 
         self.par_map = {}
         self.par_order = []
@@ -396,7 +396,8 @@ class _ConstraintModel:
 class _MainModel:
     """Factory class to create pdfs for the main measurement."""
 
-    def __init__(self, config, mega_mods, nominal_rates, batch_size):
+    def __init__(self, config, mega_mods, nominal_rates, custom_modifiers = None,batch_size = None):
+        self.custom_modifiers = custom_modifiers or []
         self.config = config
         self._factor_mods = [
             modtype
@@ -461,6 +462,12 @@ class _MainModel:
         return self.make_pdf(pars).log_prob(maindata)
 
     def _modifications(self, pars):
+        customs = list(
+            filter(
+                lambda x: x is not None,
+                [mod.apply(pars) for mod in self.custom_modifiers],
+            )
+        )
         deltas = list(
             filter(
                 lambda x: x is not None,
@@ -474,7 +481,7 @@ class _MainModel:
             )
         )
 
-        return deltas, factors
+        return customs, deltas, factors
 
     def expected_data(self, pars, return_by_sample=False):
         """
@@ -505,9 +512,11 @@ class _MainModel:
         """
         tensorlib, _ = get_backend()
         pars = tensorlib.astensor(pars)
-        deltas, factors = self._modifications(pars)
+        customs, deltas, factors = self._modifications(pars)
 
-        allsum = tensorlib.concatenate(deltas + [self.nominal_rates])
+        allsum = tensorlib.concatenate(
+            customs + deltas + [self.nominal_rates]
+        )
 
         nom_plus_delta = tensorlib.sum(allsum, axis=0)
         nom_plus_delta = tensorlib.reshape(
@@ -532,7 +541,7 @@ class _MainModel:
 class Model:
     """The main pyhf model class."""
 
-    def __init__(self, spec, batch_size=None, **config_kwargs):
+    def __init__(self, spec, custom_modifiers = None, batch_size=None, **config_kwargs):
         """
         Construct a HistFactory Model.
 
@@ -561,6 +570,7 @@ class Model:
         self.main_model = _MainModel(
             self.config,
             mega_mods=mega_mods,
+            custom_modifiers=custom_modifiers,
             nominal_rates=_nominal_rates,
             batch_size=self.batch_size,
         )
