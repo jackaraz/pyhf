@@ -61,10 +61,13 @@ def _paramset_requirements_from_channelspec(spec, channel_nbins):
     return _paramsets_requirements
 
 
-def _paramset_requirements_from_modelspec(spec, channel_nbins):
+def _paramset_requirements_from_modelspec(spec, channel_nbins, custom_modifiers_params):
     _paramsets_requirements = _paramset_requirements_from_channelspec(
         spec, channel_nbins
     )
+    for req in custom_modifiers_params:
+        for k,v in req.items():
+            _paramsets_requirements.setdefault(k,[]).append(v)
 
     # build up a dictionary of the parameter configurations provided by the user
     _paramsets_user_configs = {}
@@ -208,7 +211,7 @@ class _ModelConfig(_ChannelSummaryMixin):
     def __init__(self, spec, **config_kwargs):
         super().__init__(channels=spec['channels'])
         _required_paramsets = _paramset_requirements_from_modelspec(
-            spec, self.channel_nbins
+            spec, self.channel_nbins,config_kwargs.pop('custom_modifiers_params')
         )
         poi_name = config_kwargs.pop('poi_name', 'mu')
 
@@ -232,7 +235,6 @@ class _ModelConfig(_ChannelSummaryMixin):
         self.poi_index = None
         self.auxdata = []
         self.auxdata_order = []
-
         self._create_and_register_paramsets(_required_paramsets)
         if poi_name is not None:
             self.set_poi(poi_name)
@@ -562,7 +564,9 @@ class Model:
         log.info(f"Validating spec against schema: {self.schema:s}")
         utils.validate(self.spec, self.schema, version=self.version)
         # build up our representation of the specification
-        self.config = _ModelConfig(self.spec, **config_kwargs)
+        self.config = _ModelConfig(self.spec, custom_modifiers_params = [
+            c.required_parsets for c in custom_modifiers
+        ], **config_kwargs)
 
         mega_mods, _nominal_rates = _nominal_and_modifiers_from_spec(
             self.config, self.spec
