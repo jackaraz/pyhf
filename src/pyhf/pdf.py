@@ -431,6 +431,10 @@ class _MainModel:
             self.modifiers_appliers[name] = custom
             if custom.op_code == 'addition':
                 self._delta_mods.append(name)
+            elif custom.op_code == 'multiplication':
+                self._factor_mods.append(name)
+
+        print(self._factor_mods)
 
 
         self._precompute()
