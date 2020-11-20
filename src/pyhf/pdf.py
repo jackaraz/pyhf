@@ -434,9 +434,6 @@ class _MainModel:
             elif custom.op_code == 'multiplication':
                 self._factor_mods.append(name)
 
-        print(self._factor_mods)
-
-
         self._precompute()
         events.subscribe('tensorlib_changed')(self._precompute)
 
