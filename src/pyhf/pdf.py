@@ -399,7 +399,6 @@ class _MainModel:
     """Factory class to create pdfs for the main measurement."""
 
     def __init__(self, config, mega_mods, nominal_rates, custom_modifiers = None,batch_size = None):
-        self.custom_modifiers = custom_modifiers or []
         self.config = config
         self._factor_mods = [
             modtype
@@ -427,6 +426,12 @@ class _MainModel:
             )
             for k, c in modifiers.combined.items()
         }
+        for i,custom in enumerate(custom_modifiers):
+            name = f'custom_mod_{str(i).zfill(3)}'
+            self.modifiers_appliers[name] = custom
+            if custom.op_code == 'addition':
+                self._delta_mods.append(name)
+
 
         self._precompute()
         events.subscribe('tensorlib_changed')(self._precompute)
@@ -464,12 +469,6 @@ class _MainModel:
         return self.make_pdf(pars).log_prob(maindata)
 
     def _modifications(self, pars):
-        customs = list(
-            filter(
-                lambda x: x is not None,
-                [mod.apply(pars) for mod in self.custom_modifiers],
-            )
-        )
         deltas = list(
             filter(
                 lambda x: x is not None,
@@ -483,7 +482,7 @@ class _MainModel:
             )
         )
 
-        return customs, deltas, factors
+        return deltas, factors
 
     def expected_data(self, pars, return_by_sample=False):
         """
@@ -514,10 +513,10 @@ class _MainModel:
         """
         tensorlib, _ = get_backend()
         pars = tensorlib.astensor(pars)
-        customs, deltas, factors = self._modifications(pars)
+        deltas, factors = self._modifications(pars)
 
         allsum = tensorlib.concatenate(
-            customs + deltas + [self.nominal_rates]
+            deltas + [self.nominal_rates]
         )
 
         nom_plus_delta = tensorlib.sum(allsum, axis=0)
