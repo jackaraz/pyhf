@@ -129,9 +129,10 @@ def _nominal_and_modifiers_from_spec(config, spec):
             helper.setdefault(c['name'], {})[s['name']] = (c, s)
 
     mega_samples = {}
-    for s in config.samples:
-        mega_nom = []
-        for c in config.channels:
+    for c in config.channels:
+        for s in config.samples:
+            mega_samples.setdefault(s,{'name': f'mega_{s}', 'nom': []})
+
             defined_samp = helper.get(c, {}).get(s)
             defined_samp = None if not defined_samp else defined_samp[1]
             # set nominal to 0 for channel/sample if the pair doesn't exist
@@ -140,7 +141,7 @@ def _nominal_and_modifiers_from_spec(config, spec):
                 if defined_samp
                 else [0.0] * config.channel_nbins[c]
             )
-            mega_nom += nom
+            mega_samples[s]['nom'] += nom
             defined_mods = (
                 {f"{x['type']}/{x['name']}": x for x in defined_samp['modifiers']}
                 if defined_samp
@@ -188,8 +189,6 @@ def _nominal_and_modifiers_from_spec(config, spec):
                     mega_mods[key][s]['data']['uncrt'] += uncrt
                     mega_mods[key][s]['data']['nom_data'] += nom
 
-        sample_dict = {'name': f'mega_{s}', 'nom': mega_nom}
-        mega_samples[s] = sample_dict
 
     nominal_rates = default_backend.astensor(
         [mega_samples[s]['nom'] for s in config.samples]
@@ -556,6 +555,7 @@ class Model:
             model (:class:`~pyhf.pdf.Model`): The Model instance.
 
         """
+        custom_modifiers = custom_modifiers or []
         self.batch_size = batch_size
         self.spec = copy.deepcopy(spec)  # may get modified by config
         self.schema = config_kwargs.pop('schema', 'model.json')
