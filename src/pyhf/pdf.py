@@ -91,42 +91,54 @@ def _paramset_requirements_from_modelspec(spec, channel_nbins, custom_modifiers_
     return _sets
 
 class maskonly_helper:
+    def __init__(self, mega_mods):
+        self.mega_mods = mega_mods
+
     def collect(self,thismod,nom):
         maskval = True if thismod else False
         mask = [maskval] * len(nom)
         return {'mask': mask}
 
-    def append(self,mega_mods,key,s,thismod,nom):
+    def append(self,key,s,thismod,nom):
         moddata = self.collect(thismod,nom)
-        mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
 
 class shapesys_helper:
+    def __init__(self, mega_mods):
+        self.mega_mods = mega_mods
+
     def collect(self,thismod,nom):
         uncrt = thismod['data'] if thismod else [0.0] * len(nom)
         maskval = [(x > 0 and y > 0) for x, y in zip(uncrt, nom)]
         mask = [maskval] * len(nom)
         return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
-    def append(self,mega_mods,key,s,thismod,nom):
+    def append(self,key,s,thismod,nom):
         moddata = self.collect(thismod,nom)
-        mega_mods[key][s]['data']['mask'] += moddata['mask']
-        mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
-        mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self.mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
+        self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
 class staterr_helper:
+    def __init__(self, mega_mods):
+        self.mega_mods = mega_mods
+
     def collect(self,thismod,nom):
         uncrt = thismod['data'] if thismod else [0.0] * len(nom)
         mask = [True if thismod else False] * len(nom)
         return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
-    def append(self,mega_mods,key,s,thismod,nom):
+    def append(self,key,s,thismod,nom):
         moddata = self.collect(thismod,nom)
-        mega_mods[key][s]['data']['mask'] += moddata['mask']
-        mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
-        mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self.mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
+        self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
 
 class histosys_helper:
+    def __init__(self, mega_mods):
+        self.mega_mods = mega_mods
+
     def collect(self,thismod,nom):
         lo_data = thismod['data']['lo_data'] if thismod else nom
         hi_data = thismod['data']['hi_data'] if thismod else nom
@@ -134,14 +146,17 @@ class histosys_helper:
         mask = [maskval] * len(nom)
         return {'lo_data': lo_data, 'hi_data': hi_data, 'mask': mask, 'nom_data': nom}
 
-    def append(self,mega_mods,key,s,thismod,nom):
+    def append(self,key,s,thismod,nom):
         moddata = self.collect(thismod,nom)
-        mega_mods[key][s]['data']['lo_data'] += moddata['lo_data']
-        mega_mods[key][s]['data']['hi_data'] += moddata['hi_data']
-        mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
-        mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self.mega_mods[key][s]['data']['lo_data'] += moddata['lo_data']
+        self.mega_mods[key][s]['data']['hi_data'] += moddata['hi_data']
+        self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
 
 class normsys_helper:
+    def __init__(self, mega_mods):
+        self.mega_mods = mega_mods
+
     def collect(self,thismod,nom):
         maskval = True if thismod else False
         lo_factor = thismod['data']['lo'] if thismod else 1.0
@@ -152,12 +167,12 @@ class normsys_helper:
         mask = [maskval] * len(nom)
         return {'lo': lo, 'hi': hi, 'mask': mask, 'nom_data': nom_data}
 
-    def append(self,mega_mods,key,s,thismod,nom):
+    def append(self,key,s,thismod,nom):
         moddata = self.collect(thismod,nom)
-        mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
-        mega_mods[key][s]['data']['lo'] += moddata['lo']
-        mega_mods[key][s]['data']['hi'] += moddata['hi']
-        mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+        self.mega_mods[key][s]['data']['lo'] += moddata['lo']
+        self.mega_mods[key][s]['data']['hi'] += moddata['hi']
+        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
 
 
 
@@ -200,6 +215,16 @@ def _nominal_and_modifiers_from_spec(config, spec):
         for s in c['samples']:
             helper.setdefault(c['name'], {})[s['name']] = (c, s)
 
+    modifiers_helpers = {
+        'histosys': histosys_helper(mega_mods),
+        'normsys': normsys_helper(mega_mods),
+        'normfactor': maskonly_helper(mega_mods),
+        'shapefactor': maskonly_helper(mega_mods),
+        'lumi': maskonly_helper(mega_mods),
+        'shapesys': shapesys_helper(mega_mods),
+        'staterror': staterr_helper(mega_mods)
+    }
+
 
     mega_samples = {}
     for c in config.channels:
@@ -224,16 +249,7 @@ def _nominal_and_modifiers_from_spec(config, spec):
                 key = f'{mtype}/{m}'
                 # this is None if modifier doesn't affect channel/sample.
                 thismod = defined_mods.get(key)
-                if mtype == 'histosys':
-                    histosys_helper().append(mega_mods,key,s,thismod,nom)
-                elif mtype == 'normsys':
-                    normsys_helper().append(mega_mods,key,s,thismod,nom)
-                elif mtype in ['normfactor', 'shapefactor', 'lumi']:
-                    moddata = maskonly_helper().append(mega_mods,key,s,thismod,nom)
-                elif mtype == 'shapesys':
-                    moddata = shapesys_helper().append(mega_mods,key,s,thismod,nom)
-                elif mtype == 'staterror':
-                    staterr_helper().append(mega_mods,key,s,thismod,nom)
+                modifiers_helpers[mtype].append(key,s,thismod,nom)
 
     nominal_rates = default_backend.astensor(
         [mega_samples[s]['nom'] for s in config.samples]
