@@ -90,39 +90,76 @@ def _paramset_requirements_from_modelspec(spec, channel_nbins, custom_modifiers_
 
     return _sets
 
+class maskonly_helper:
+    def collect(self,thismod,nom):
+        maskval = True if thismod else False
+        mask = [maskval] * len(nom)
+        return {'mask': mask}
 
-def collect_mask_only(thismod,nom):
-    maskval = True if thismod else False
-    mask = [maskval] * len(nom)
-    return {'mask': mask}
+    def append(self,mega_mods,key,s,thismod,nom):
+        moddata = self.collect(thismod,nom)
+        mega_mods[key][s]['data']['mask'] += moddata['mask']
 
-def collect_shapesys(thismod,nom):
-    uncrt = thismod['data'] if thismod else [0.0] * len(nom)
-    maskval = [(x > 0 and y > 0) for x, y in zip(uncrt, nom)]
-    mask = [maskval] * len(nom)
-    return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
+class shapesys_helper:
+    def collect(self,thismod,nom):
+        uncrt = thismod['data'] if thismod else [0.0] * len(nom)
+        maskval = [(x > 0 and y > 0) for x, y in zip(uncrt, nom)]
+        mask = [maskval] * len(nom)
+        return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
-def collect_staterr(thismod,nom):
-    uncrt = thismod['data'] if thismod else [0.0] * len(nom)
-    mask = [True if thismod else False] * len(nom)
-    return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
+    def append(self,mega_mods,key,s,thismod,nom):
+        moddata = self.collect(thismod,nom)
+        mega_mods[key][s]['data']['mask'] += moddata['mask']
+        mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
+        mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
-def collect_histosys(thismod,nom):
-    lo_data = thismod['data']['lo_data'] if thismod else nom
-    hi_data = thismod['data']['hi_data'] if thismod else nom
-    maskval = True if thismod else False
-    mask = [maskval] * len(nom)
-    return {'lo_data': lo_data, 'hi_data': hi_data, 'mask': mask, 'nom_data': nom}
+class staterr_helper:
+    def collect(self,thismod,nom):
+        uncrt = thismod['data'] if thismod else [0.0] * len(nom)
+        mask = [True if thismod else False] * len(nom)
+        return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
-def collect_normsys(thismod,nom):
-    maskval = True if thismod else False
-    lo_factor = thismod['data']['lo'] if thismod else 1.0
-    hi_factor = thismod['data']['hi'] if thismod else 1.0
-    nom_data = [1.0] * len(nom)
-    lo = [lo_factor] * len(nom)  # broadcasting
-    hi = [hi_factor] * len(nom)
-    mask = [maskval] * len(nom)
-    return {'lo': lo, 'hi': hi, 'mask': mask, 'nom_data': nom_data}
+    def append(self,mega_mods,key,s,thismod,nom):
+        moddata = self.collect(thismod,nom)
+        mega_mods[key][s]['data']['mask'] += moddata['mask']
+        mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
+        mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+
+
+class histosys_helper:
+    def collect(self,thismod,nom):
+        lo_data = thismod['data']['lo_data'] if thismod else nom
+        hi_data = thismod['data']['hi_data'] if thismod else nom
+        maskval = True if thismod else False
+        mask = [maskval] * len(nom)
+        return {'lo_data': lo_data, 'hi_data': hi_data, 'mask': mask, 'nom_data': nom}
+
+    def append(self,mega_mods,key,s,thismod,nom):
+        moddata = self.collect(thismod,nom)
+        mega_mods[key][s]['data']['lo_data'] += moddata['lo_data']
+        mega_mods[key][s]['data']['hi_data'] += moddata['hi_data']
+        mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+        mega_mods[key][s]['data']['mask'] += moddata['mask']
+
+class normsys_helper:
+    def collect(self,thismod,nom):
+        maskval = True if thismod else False
+        lo_factor = thismod['data']['lo'] if thismod else 1.0
+        hi_factor = thismod['data']['hi'] if thismod else 1.0
+        nom_data = [1.0] * len(nom)
+        lo = [lo_factor] * len(nom)  # broadcasting
+        hi = [hi_factor] * len(nom)
+        mask = [maskval] * len(nom)
+        return {'lo': lo, 'hi': hi, 'mask': mask, 'nom_data': nom_data}
+
+    def append(self,mega_mods,key,s,thismod,nom):
+        moddata = self.collect(thismod,nom)
+        mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+        mega_mods[key][s]['data']['lo'] += moddata['lo']
+        mega_mods[key][s]['data']['hi'] += moddata['hi']
+        mega_mods[key][s]['data']['mask'] += moddata['mask']
+
+
 
 def _nominal_and_modifiers_from_spec(config, spec):
     default_data_makers = {
@@ -146,6 +183,7 @@ def _nominal_and_modifiers_from_spec(config, spec):
     # We don't actually set up the modifier data here for no-ops, but we do
     # set up the entire structure
     mega_mods = {}
+    mega_mods_two = {}
     for m, mtype in config.modifiers:
         for s in config.samples:
             key = f'{mtype}/{m}'
@@ -154,12 +192,14 @@ def _nominal_and_modifiers_from_spec(config, spec):
                 'name': m,
                 'data': default_data_makers[mtype](),
             }
+            mega_mods_two.setdefault(key,{})[s] = []
 
     # helper maps channel-name/sample-name to pairs of channel-sample structs
     helper = {}
     for c in spec['channels']:
         for s in c['samples']:
             helper.setdefault(c['name'], {})[s['name']] = (c, s)
+
 
     mega_samples = {}
     for c in config.channels:
@@ -185,34 +225,15 @@ def _nominal_and_modifiers_from_spec(config, spec):
                 # this is None if modifier doesn't affect channel/sample.
                 thismod = defined_mods.get(key)
                 if mtype == 'histosys':
-                    moddata = collect_histosys(thismod,nom)
-                    mega_mods[key][s]['data']['lo_data'] += moddata['lo_data']
-                    mega_mods[key][s]['data']['hi_data'] += moddata['hi_data']
-                    mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
-                    mega_mods[key][s]['data']['mask'] += moddata['mask']
+                    histosys_helper().append(mega_mods,key,s,thismod,nom)
                 elif mtype == 'normsys':
-                    moddata = collect_normsys(thismod,nom)
-                    mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
-                    mega_mods[key][s]['data']['lo'] += moddata['lo']
-                    mega_mods[key][s]['data']['hi'] += moddata['hi']
-                    mega_mods[key][s]['data']['mask'] += moddata['mask']
+                    normsys_helper().append(mega_mods,key,s,thismod,nom)
                 elif mtype in ['normfactor', 'shapefactor', 'lumi']:
-                    maskval = True if thismod else False
-                    mega_mods[key][s]['data']['mask'] += [maskval] * len(
-                        nom
-                    )  # broadcasting
+                    moddata = maskonly_helper().append(mega_mods,key,s,thismod,nom)
                 elif mtype == 'shapesys':
-                    moddata = collect_shapesys(thismod,nom)
-                    mega_mods[key][s]['data']['mask'] += moddata['mask']
-                    mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
-                    mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+                    moddata = shapesys_helper().append(mega_mods,key,s,thismod,nom)
                 elif mtype == 'staterror':
-                    moddata = collect_staterr(thismod,nom)
-                    mega_mods[key][s]['data']['mask'] += moddata['mask']
-                    mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
-                    mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
-
-
+                    staterr_helper().append(mega_mods,key,s,thismod,nom)
 
     nominal_rates = default_backend.astensor(
         [mega_samples[s]['nom'] for s in config.samples]
