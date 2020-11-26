@@ -90,22 +90,58 @@ def _paramset_requirements_from_modelspec(spec, channel_nbins, custom_modifiers_
 
     return _sets
 
-class maskonly_helper:
-    def __init__(self, mega_mods):
-        self.mega_mods = mega_mods
+class nominal_helper:
+    def __init__(self, config, mega_samples):
+        self.mega_samples = mega_samples
+        self.config = config
 
-    def collect(self,thismod,nom):
+    def append(self,c,s,defined_samp):
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[c]
+        )
+        self.mega_samples[s]['nom'] += nom
+
+    def apply(self):
+        nominal_rates = default_backend.astensor(
+            [self.mega_samples[s]['nom'] for s in self.config.samples]
+        )
+        _nominal_rates = default_backend.reshape(
+            nominal_rates,
+            (
+                1,  # modifier dimension.. nominal_rates is the base
+                len(self.config.samples),
+                1,  # alphaset dimension
+                sum(list(self.config.channel_nbins.values())),
+            ),
+        )
+        return _nominal_rates
+
+
+class maskonly_helper:
+    def __init__(self, config, mega_mods):
+        self.mega_mods = mega_mods
+        self.config = config
+
+    def collect(self, thismod,nom):
         maskval = True if thismod else False
         mask = [maskval] * len(nom)
         return {'mask': mask}
 
-    def append(self,key,s,thismod,nom):
+    def append(self,key,c,s,thismod,defined_samp):
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[c]
+        )
         moddata = self.collect(thismod,nom)
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
 
 class shapesys_helper:
-    def __init__(self, mega_mods):
+    def __init__(self, config, mega_mods):
         self.mega_mods = mega_mods
+        self.config = config
 
     def collect(self,thismod,nom):
         uncrt = thismod['data'] if thismod else [0.0] * len(nom)
@@ -113,22 +149,33 @@ class shapesys_helper:
         mask = [maskval] * len(nom)
         return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
-    def append(self,key,s,thismod,nom):
+    def append(self,key,c,s,thismod,defined_samp):
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[c]
+        )
         moddata = self.collect(thismod,nom)
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
         self.mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
         self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
 class staterr_helper:
-    def __init__(self, mega_mods):
+    def __init__(self, config, mega_mods):
         self.mega_mods = mega_mods
+        self.config = config
 
     def collect(self,thismod,nom):
         uncrt = thismod['data'] if thismod else [0.0] * len(nom)
         mask = [True if thismod else False] * len(nom)
         return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
-    def append(self,key,s,thismod,nom):
+    def append(self,key,c,s,thismod,defined_samp):
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[c]
+        )
         moddata = self.collect(thismod,nom)
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
         self.mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
@@ -136,8 +183,9 @@ class staterr_helper:
 
 
 class histosys_helper:
-    def __init__(self, mega_mods):
+    def __init__(self, config, mega_mods):
         self.mega_mods = mega_mods
+        self.config = config
 
     def collect(self,thismod,nom):
         lo_data = thismod['data']['lo_data'] if thismod else nom
@@ -146,7 +194,12 @@ class histosys_helper:
         mask = [maskval] * len(nom)
         return {'lo_data': lo_data, 'hi_data': hi_data, 'mask': mask, 'nom_data': nom}
 
-    def append(self,key,s,thismod,nom):
+    def append(self,key,c,s,thismod,defined_samp):
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[c]
+        )
         moddata = self.collect(thismod,nom)
         self.mega_mods[key][s]['data']['lo_data'] += moddata['lo_data']
         self.mega_mods[key][s]['data']['hi_data'] += moddata['hi_data']
@@ -154,8 +207,9 @@ class histosys_helper:
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
 
 class normsys_helper:
-    def __init__(self, mega_mods):
+    def __init__(self, config, mega_mods):
         self.mega_mods = mega_mods
+        self.config = config
 
     def collect(self,thismod,nom):
         maskval = True if thismod else False
@@ -167,7 +221,12 @@ class normsys_helper:
         mask = [maskval] * len(nom)
         return {'lo': lo, 'hi': hi, 'mask': mask, 'nom_data': nom_data}
 
-    def append(self,key,s,thismod,nom):
+    def append(self,key,c,s,thismod,defined_samp):
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[c]
+        )
         moddata = self.collect(thismod,nom)
         self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
         self.mega_mods[key][s]['data']['lo'] += moddata['lo']
@@ -213,56 +272,38 @@ def _nominal_and_modifiers_from_spec(config, spec):
     helper = {}
     for c in spec['channels']:
         for s in c['samples']:
-            helper.setdefault(c['name'], {})[s['name']] = (c, s)
+            moddict = {f"{x['type']}/{x['name']}": x for x in s['modifiers']}
+            helper.setdefault(c['name'], {})[s['name']] = (c, s, moddict)
 
     modifiers_helpers = {
-        'histosys': histosys_helper(mega_mods),
-        'normsys': normsys_helper(mega_mods),
-        'normfactor': maskonly_helper(mega_mods),
-        'shapefactor': maskonly_helper(mega_mods),
-        'lumi': maskonly_helper(mega_mods),
-        'shapesys': shapesys_helper(mega_mods),
-        'staterror': staterr_helper(mega_mods)
+        'histosys': histosys_helper(config,mega_mods),
+        'normsys': normsys_helper(config,mega_mods),
+        'normfactor': maskonly_helper(config,mega_mods),
+        'shapefactor': maskonly_helper(config,mega_mods),
+        'lumi': maskonly_helper(config,mega_mods),
+        'shapesys': shapesys_helper(config,mega_mods),
+        'staterror': staterr_helper(config,mega_mods)
     }
 
-
     mega_samples = {}
+    nominal = nominal_helper(config,mega_samples)
+
+
     for c in config.channels:
         for s in config.samples:
             mega_samples.setdefault(s,{'name': f'mega_{s}', 'nom': []})
 
-            defined_samp = helper.get(c, {}).get(s)
-            defined_samp = None if not defined_samp else defined_samp[1]
-            # set nominal to 0 for channel/sample if the pair doesn't exist
-            nom = (
-                defined_samp['data']
-                if defined_samp
-                else [0.0] * config.channel_nbins[c]
-            )
-            mega_samples[s]['nom'] += nom
-            defined_mods = (
-                {f"{x['type']}/{x['name']}": x for x in defined_samp['modifiers']}
-                if defined_samp
-                else {}
-            )
+            helper_data = helper.get(c, {}).get(s)
+            defined_samp = None if not helper_data else helper_data[1]
+            defined_mods = {} if not helper_data else helper_data[2]
+            nominal.append(c,s,defined_samp)
             for m, mtype in config.modifiers:
                 key = f'{mtype}/{m}'
                 # this is None if modifier doesn't affect channel/sample.
                 thismod = defined_mods.get(key)
-                modifiers_helpers[mtype].append(key,s,thismod,nom)
+                modifiers_helpers[mtype].append(key,c,s,thismod,defined_samp)
 
-    nominal_rates = default_backend.astensor(
-        [mega_samples[s]['nom'] for s in config.samples]
-    )
-    _nominal_rates = default_backend.reshape(
-        nominal_rates,
-        (
-            1,  # modifier dimension.. nominal_rates is the base
-            len(config.samples),
-            1,  # alphaset dimension
-            sum(list(config.channel_nbins.values())),
-        ),
-    )
+    _nominal_rates = nominal.apply()
 
     return mega_mods, _nominal_rates
 
