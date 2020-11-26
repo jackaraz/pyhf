@@ -61,10 +61,10 @@ def _paramset_requirements_from_channelspec(spec, channel_nbins):
     return _paramsets_requirements
 
 
-def _paramset_requirements_from_modelspec(spec, _paramsets_requirements, channel_nbins, custom_modifiers_params):
+def _finalize_parameters(user_parameters, _paramsets_requirements, channel_nbins):
     # build up a dictionary of the parameter configurations provided by the user
     _paramsets_user_configs = {}
-    for parameter in spec.get('parameters', []):
+    for parameter in user_parameters:
         if parameter['name'] in _paramsets_user_configs:
             raise exceptions.InvalidModel(
                 f"Multiple parameter configurations for {parameter['name']} were found."
@@ -117,7 +117,7 @@ class lumi_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
-        self.parameters = {}
+        self.required_parsets = {}
 
     def collect(self, thismod,nom):
         maskval = True if thismod else False
@@ -136,7 +136,7 @@ class lumi_helper:
         moddata = self.collect(thismod,nom)
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
         if thismod:
-            self.parameters.setdefault(thismod['name'],[]).append(modifiers.lumi.required_parset(
+            self.required_parsets.setdefault(thismod['name'],[]).append(modifiers.lumi.required_parset(
                 defined_samp['data'], thismod['data']
         ))
 
@@ -144,7 +144,7 @@ class normfactor_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
-        self.parameters = {}
+        self.required_parsets = {}
 
     def collect(self, thismod,nom):
         maskval = True if thismod else False
@@ -163,7 +163,7 @@ class normfactor_helper:
         moddata = self.collect(thismod,nom)
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
         if thismod:
-            self.parameters.setdefault(thismod['name'],[]).append(modifiers.normfactor.required_parset(
+            self.required_parsets.setdefault(thismod['name'],[]).append(modifiers.normfactor.required_parset(
                 defined_samp['data'], thismod['data']
         ))
 
@@ -171,7 +171,7 @@ class shapefactor_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
-        self.parameters = {}
+        self.required_parsets = {}
 
     def collect(self, thismod,nom):
         maskval = True if thismod else False
@@ -190,7 +190,7 @@ class shapefactor_helper:
         moddata = self.collect(thismod,nom)
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
         if thismod:
-            self.parameters.setdefault(thismod['name'],[]).append(modifiers.shapefactor.required_parset(
+            self.required_parsets.setdefault(thismod['name'],[]).append(modifiers.shapefactor.required_parset(
                 defined_samp['data'], thismod['data']
         ))
 
@@ -198,7 +198,7 @@ class shapesys_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
-        self.parameters = {}
+        self.required_parsets = {}
 
     def collect(self,thismod,nom):
         uncrt = thismod['data'] if thismod else [0.0] * len(nom)
@@ -221,7 +221,7 @@ class shapesys_helper:
         self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
         if thismod:
-            self.parameters.setdefault(thismod['name'],[]).append(modifiers.shapesys.required_parset(
+            self.required_parsets.setdefault(thismod['name'],[]).append(modifiers.shapesys.required_parset(
                 defined_samp['data'], thismod['data']
         ))
 
@@ -229,7 +229,7 @@ class staterr_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
-        self.parameters = {}
+        self.required_parsets = {}
 
     def collect(self,thismod,nom):
         uncrt = thismod['data'] if thismod else [0.0] * len(nom)
@@ -251,7 +251,7 @@ class staterr_helper:
         self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
         if thismod:
-            self.parameters.setdefault(thismod['name'],[]).append(modifiers.staterror.required_parset(
+            self.required_parsets.setdefault(thismod['name'],[]).append(modifiers.staterror.required_parset(
                 defined_samp['data'], thismod['data']
         ))
 
@@ -259,7 +259,7 @@ class histosys_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
-        self.parameters = {}
+        self.required_parsets = {}
 
     def collect(self,thismod,nom):
         lo_data = thismod['data']['lo_data'] if thismod else nom
@@ -284,7 +284,7 @@ class histosys_helper:
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
 
         if thismod:
-            self.parameters.setdefault(thismod['name'],[]).append(modifiers.histosys.required_parset(
+            self.required_parsets.setdefault(thismod['name'],[]).append(modifiers.histosys.required_parset(
                 defined_samp['data'], thismod['data']
         ))
 
@@ -292,7 +292,7 @@ class normsys_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
-        self.parameters = {}
+        self.required_parsets = {}
 
     def collect(self,thismod,nom):
         maskval = True if thismod else False
@@ -321,13 +321,13 @@ class normsys_helper:
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
 
         if thismod:
-            self.parameters.setdefault(thismod['name'],[]).append(modifiers.normsys.required_parset(
+            self.required_parsets.setdefault(thismod['name'],[]).append(modifiers.normsys.required_parset(
                 defined_samp['data'], thismod['data']
             ))
 
 
 
-def _nominal_and_modifiers_from_spec(poi_name,config, spec,batch_size):
+def _nominal_and_modifiers_from_spec(poi_name,custom_modifiers,config, spec,batch_size):
     # the mega-channel will consist of mega-samples that subscribe to
     # mega-modifiers. i.e. while in normal histfactory, each sample might
     # be affected by some modifiers and some not, here we change it so that
@@ -376,14 +376,21 @@ def _nominal_and_modifiers_from_spec(poi_name,config, spec,batch_size):
 
 
     _parset_reqs = {}
-    for k,v in modifiers_helpers.items():
-        for pname, req_list in v.parameters.items():
+    for v in list(modifiers_helpers.values()) + custom_modifiers:
+        for pname, req_list in v.required_parsets.items():
             _parset_reqs.setdefault(pname,[])
             _parset_reqs[pname] += req_list
 
-    _required_paramsets = _paramset_requirements_from_modelspec(
-        spec, _parset_reqs, config.channel_nbins,custom_modifiers_params = []
+    user_parameters = spec.get('parameters', [])
+
+    _required_paramsets = _finalize_parameters(
+        user_parameters,
+        _parset_reqs,
+        config.channel_nbins,
     )
+
+
+
     poi_name = poi_name
     config.set_parameters(poi_name,_required_paramsets)
 
@@ -747,7 +754,7 @@ class Model:
 
 
         standard_modifiers, _nominal_rates = _nominal_and_modifiers_from_spec(
-            config_kwargs.pop('poi_name'), self.config, self.spec, self.batch_size
+            config_kwargs.pop('poi_name'), custom_modifiers, self.config, self.spec, self.batch_size
         )
 
         for custom in custom_modifiers:
