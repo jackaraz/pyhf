@@ -36,6 +36,7 @@ class shapesys:
 
 class shapesys_combined:
     def __init__(self, shapesys_mods, pdfconfig, mega_mods, batch_size=None):
+        self.op_code = shapesys.op_code 
         self.batch_size = batch_size
 
         keys = [f'{mtype}/{m}' for m, mtype in shapesys_mods]

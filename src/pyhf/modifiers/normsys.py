@@ -28,6 +28,7 @@ class normsys_combined:
     def __init__(
         self, normsys_mods, pdfconfig, mega_mods, interpcode='code1', batch_size=None
     ):
+        self.op_code = normsys.op_code 
         self.interpcode = interpcode
         assert self.interpcode in ['code1', 'code4']
 

@@ -506,16 +506,9 @@ class _MainModel:
 
     def __init__(self, config, standard_modifiers, nominal_rates, custom_modifiers = None,batch_size = None):
         self.config = config
-        self._factor_mods = [
-            modtype
-            for modtype, mod in modifiers.uncombined.items()
-            if mod.op_code == 'multiplication'
-        ]
-        self._delta_mods = [
-            modtype
-            for modtype, mod in modifiers.uncombined.items()
-            if mod.op_code == 'addition'
-        ]
+        
+        self._factor_mods = []
+        self._delta_mods = []
         self.batch_size = batch_size
 
         self._nominal_rates = default_backend.tile(
@@ -523,6 +516,14 @@ class _MainModel:
         )
 
         self.modifiers_appliers = standard_modifiers
+
+        for k,v in self.modifiers_appliers.items():
+            if v.op_code == 'addition':
+                self._delta_mods.append(k)
+            elif v.op_code == 'multiplication':
+                self._factor_mods.append(k)
+
+
 
         for i,custom in enumerate(custom_modifiers):
             name = f'custom_mod_{str(i).zfill(3)}'
