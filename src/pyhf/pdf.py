@@ -504,7 +504,7 @@ class _ConstraintModel:
 class _MainModel:
     """Factory class to create pdfs for the main measurement."""
 
-    def __init__(self, config, standard_modifiers, nominal_rates, custom_modifiers = None,batch_size = None):
+    def __init__(self, config, modifiers, nominal_rates, batch_size = None):
         self.config = config
         
         self._factor_mods = []
@@ -515,23 +515,13 @@ class _MainModel:
             nominal_rates, (1, 1, self.batch_size or 1, 1)
         )
 
-        self.modifiers_appliers = standard_modifiers
+        self.modifiers_appliers = modifiers
 
         for k,v in self.modifiers_appliers.items():
             if v.op_code == 'addition':
-                self._delta_mods.append(k)
+                self._delta_mods.append(v.name)
             elif v.op_code == 'multiplication':
-                self._factor_mods.append(k)
-
-
-
-        for i,custom in enumerate(custom_modifiers):
-            name = f'custom_mod_{str(i).zfill(3)}'
-            self.modifiers_appliers[name] = custom
-            if custom.op_code == 'addition':
-                self._delta_mods.append(name)
-            elif custom.op_code == 'multiplication':
-                self._factor_mods.append(name)
+                self._factor_mods.append(v.name)
 
         self._precompute()
         events.subscribe('tensorlib_changed')(self._precompute)
@@ -674,14 +664,12 @@ class Model:
 
         for custom in custom_modifiers:
             custom.config = self.config
-
-
+            standard_modifiers[custom.name] = custom
 
 
         self.main_model = _MainModel(
             self.config,
-            standard_modifiers=standard_modifiers,
-            custom_modifiers=custom_modifiers,
+            modifiers=standard_modifiers,
             nominal_rates=_nominal_rates,
             batch_size=self.batch_size,
         )

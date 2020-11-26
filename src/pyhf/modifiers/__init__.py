@@ -54,6 +54,7 @@ def add_to_registry(
             f'The specified op_code "{op_code:s}" is not valid for {cls_name:s}({cls.__name__:s}). See pyhf.modifier documentation for available operation codes.'
         )
     cls.op_code = op_code
+    cls.name = cls_name
 
     registry[cls_name] = cls
 

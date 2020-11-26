@@ -28,6 +28,7 @@ class lumi:
 class lumi_combined:
     def __init__(self, lumi_mods, pdfconfig, mega_mods, batch_size=None):
         self.batch_size = batch_size
+        self.name = lumi.name 
         self.op_code = lumi.op_code 
 
         keys = [f'{mtype}/{m}' for m, mtype in lumi_mods]

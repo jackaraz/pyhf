@@ -28,6 +28,7 @@ class histosys_combined:
     def __init__(
         self, histosys_mods, pdfconfig, mega_mods, interpcode='code0', batch_size=None
     ):
+        self.name = histosys.name 
         self.op_code = histosys.op_code 
         self.batch_size = batch_size
         self.interpcode = interpcode
