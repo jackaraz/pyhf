@@ -251,7 +251,7 @@ class normsys_helper:
 
 
 
-def _nominal_and_modifiers_from_spec(config, spec):
+def _nominal_and_modifiers_from_spec(config, spec,batch_size):
     # the mega-channel will consist of mega-samples that subscribe to
     # mega-modifiers. i.e. while in normal histfactory, each sample might
     # be affected by some modifiers and some not, here we change it so that
@@ -299,7 +299,18 @@ def _nominal_and_modifiers_from_spec(config, spec):
     mega_mods = {k:v.mega_mods for k,v in modifiers_helpers.items()}
 
 
-    return mega_mods, nominal_rates
+    standard_modifiers = {
+        k: c(
+            [x for x in config.modifiers if x[1] == k],  # x[1] is mtype
+            config,
+            mega_mods.get(k),
+            batch_size=batch_size,
+            **config.modifier_settings.get(k, {}),
+        )
+        for k, c in modifiers.combined.items()
+    }
+
+    return standard_modifiers, nominal_rates
 
 
 class _ModelConfig(_ChannelSummaryMixin):
@@ -493,7 +504,7 @@ class _ConstraintModel:
 class _MainModel:
     """Factory class to create pdfs for the main measurement."""
 
-    def __init__(self, config, mega_mods, nominal_rates, custom_modifiers = None,batch_size = None):
+    def __init__(self, config, standard_modifiers, nominal_rates, custom_modifiers = None,batch_size = None):
         self.config = config
         self._factor_mods = [
             modtype
@@ -511,16 +522,8 @@ class _MainModel:
             nominal_rates, (1, 1, self.batch_size or 1, 1)
         )
 
-        self.modifiers_appliers = {
-            k: c(
-                [x for x in config.modifiers if x[1] == k],  # x[1] is mtype
-                config,
-                mega_mods.get(k),
-                batch_size=self.batch_size,
-                **config.modifier_settings.get(k, {}),
-            )
-            for k, c in modifiers.combined.items()
-        }
+        self.modifiers_appliers = standard_modifiers
+
         for i,custom in enumerate(custom_modifiers):
             name = f'custom_mod_{str(i).zfill(3)}'
             self.modifiers_appliers[name] = custom
@@ -664,16 +667,19 @@ class Model:
             c.required_parsets for c in custom_modifiers
         ], **config_kwargs)
 
-        mega_mods, _nominal_rates = _nominal_and_modifiers_from_spec(
-            self.config, self.spec
+        standard_modifiers, _nominal_rates = _nominal_and_modifiers_from_spec(
+            self.config, self.spec, self.batch_size
         )
 
         for custom in custom_modifiers:
             custom.config = self.config
 
+
+
+
         self.main_model = _MainModel(
             self.config,
-            mega_mods=mega_mods,
+            standard_modifiers=standard_modifiers,
             custom_modifiers=custom_modifiers,
             nominal_rates=_nominal_rates,
             batch_size=self.batch_size,
