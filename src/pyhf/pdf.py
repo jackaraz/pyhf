@@ -404,6 +404,10 @@ def _nominal_and_modifiers_from_spec(custom_modifiers,config, spec,batch_size):
         for k, c in modifiers.combined.items()
     }
 
+    for custom in custom_modifiers:
+        custom.config = config
+        standard_modifiers[custom.name] = custom
+
     return standard_modifiers, nominal_rates
 
 
@@ -749,7 +753,7 @@ class Model:
 
 
 
-        standard_modifiers, _nominal_rates = _nominal_and_modifiers_from_spec(
+        modifiers, _nominal_rates = _nominal_and_modifiers_from_spec(
             custom_modifiers, self.config, self.spec, self.batch_size
         )
 
@@ -757,15 +761,9 @@ class Model:
         if poi_name is not None:
             self.config.set_poi(poi_name)
 
-
-        for custom in custom_modifiers:
-            custom.config = self.config
-            standard_modifiers[custom.name] = custom
-
-
         self.main_model = _MainModel(
             self.config,
-            modifiers=standard_modifiers,
+            modifiers=modifiers,
             nominal_rates=_nominal_rates,
             batch_size=self.batch_size,
         )
