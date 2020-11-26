@@ -91,11 +91,12 @@ def _paramset_requirements_from_modelspec(spec, channel_nbins, custom_modifiers_
     return _sets
 
 class nominal_helper:
-    def __init__(self, config, mega_samples):
-        self.mega_samples = mega_samples
+    def __init__(self, config):
+        self.mega_samples = {}
         self.config = config
 
     def append(self,c,s,defined_samp):
+        self.mega_samples.setdefault(s,{'name': f'mega_{s}', 'nom': []})
         nom = (
             defined_samp['data']
             if defined_samp
@@ -273,7 +274,7 @@ def _nominal_and_modifiers_from_spec(config, spec):
     for c in spec['channels']:
         for s in c['samples']:
             moddict = {f"{x['type']}/{x['name']}": x for x in s['modifiers']}
-            helper.setdefault(c['name'], {})[s['name']] = (c, s, moddict)
+            helper.setdefault(c['name'], {})[s['name']] = (s, moddict)
 
     modifiers_helpers = {
         'histosys': histosys_helper(config,mega_mods),
@@ -285,22 +286,18 @@ def _nominal_and_modifiers_from_spec(config, spec):
         'staterror': staterr_helper(config,mega_mods)
     }
 
-    mega_samples = {}
-    nominal = nominal_helper(config,mega_samples)
+    nominal = nominal_helper(config)
 
 
     for c in config.channels:
         for s in config.samples:
-            mega_samples.setdefault(s,{'name': f'mega_{s}', 'nom': []})
-
             helper_data = helper.get(c, {}).get(s)
-            defined_samp = None if not helper_data else helper_data[1]
-            defined_mods = {} if not helper_data else helper_data[2]
+            defined_samp,defined_mods = (None,None) if not helper_data else helper_data
             nominal.append(c,s,defined_samp)
             for m, mtype in config.modifiers:
                 key = f'{mtype}/{m}'
                 # this is None if modifier doesn't affect channel/sample.
-                thismod = defined_mods.get(key)
+                thismod = defined_mods.get(key) if defined_mods else None
                 modifiers_helpers[mtype].append(key,c,s,thismod,defined_samp)
 
     nominal_rates = nominal.apply()
