@@ -210,8 +210,7 @@ class shapesys_helper:
 
     def collect(self, thismod, nom):
         uncrt = thismod['data'] if thismod else [0.0] * len(nom)
-        maskval = [(x > 0 and y > 0) for x, y in zip(uncrt, nom)]
-        mask = [maskval] * len(nom)
+        mask = [(x > 0 and y > 0) for x, y in zip(uncrt, nom)]
         return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
     def append(self, key, c, s, thismod, defined_samp):
@@ -765,7 +764,7 @@ class Model:
             custom_modifiers, self.config, self.spec, self.batch_size
         )
 
-        poi_name = config_kwargs.pop('poi_name')
+        poi_name = config_kwargs.pop('poi_name','mu')
         if poi_name is not None:
             self.config.set_poi(poi_name)
 
