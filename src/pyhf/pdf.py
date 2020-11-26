@@ -327,7 +327,7 @@ class normsys_helper:
 
 
 
-def _nominal_and_modifiers_from_spec(poi_name,custom_modifiers,config, spec,batch_size):
+def _nominal_and_modifiers_from_spec(custom_modifiers,config, spec,batch_size):
     # the mega-channel will consist of mega-samples that subscribe to
     # mega-modifiers. i.e. while in normal histfactory, each sample might
     # be affected by some modifiers and some not, here we change it so that
@@ -391,8 +391,7 @@ def _nominal_and_modifiers_from_spec(poi_name,custom_modifiers,config, spec,batc
 
 
 
-    poi_name = poi_name
-    config.set_parameters(poi_name,_required_paramsets)
+    config.set_parameters(_required_paramsets)
 
     standard_modifiers = {
         k: c(
@@ -435,11 +434,8 @@ class _ModelConfig(_ChannelSummaryMixin):
         self.nmaindata = sum(self.channel_nbins.values())
 
 
-    def set_parameters(self,poi_name,_required_paramsets):
+    def set_parameters(self,_required_paramsets):
         self._create_and_register_paramsets(_required_paramsets)
-        if poi_name is not None:
-            self.set_poi(poi_name)
-
         self.npars = len(self.suggested_init())
 
     def suggested_init(self):
@@ -754,8 +750,13 @@ class Model:
 
 
         standard_modifiers, _nominal_rates = _nominal_and_modifiers_from_spec(
-            config_kwargs.pop('poi_name'), custom_modifiers, self.config, self.spec, self.batch_size
+            custom_modifiers, self.config, self.spec, self.batch_size
         )
+
+        poi_name = config_kwargs.pop('poi_name')
+        if poi_name is not None:
+            self.config.set_poi(poi_name)
+
 
         for custom in custom_modifiers:
             custom.config = self.config
