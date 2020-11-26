@@ -120,10 +120,11 @@ class nominal_helper:
         return _nominal_rates
 
 
-class maskonly_helper:
+class lumi_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
+        self.parameters = {}
 
     def collect(self, thismod,nom):
         maskval = True if thismod else False
@@ -141,11 +142,70 @@ class maskonly_helper:
         )
         moddata = self.collect(thismod,nom)
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+        if thismod:
+            self.parameters.setdefault(thismod['name'],[]).append(modifiers.lumi.required_parset(
+                defined_samp['data'], thismod['data']
+        ))
+
+class normfactor_helper:
+    def __init__(self, config):
+        self.mega_mods = {}
+        self.config = config
+        self.parameters = {}
+
+    def collect(self, thismod,nom):
+        maskval = True if thismod else False
+        mask = [maskval] * len(nom)
+        return {'mask': mask}
+
+    def append(self,key,c,s,thismod,defined_samp):
+        self.mega_mods.setdefault(key, {}).setdefault(s,{}).setdefault(
+            'data',{'mask': []}
+        )
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[c]
+        )
+        moddata = self.collect(thismod,nom)
+        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+        if thismod:
+            self.parameters.setdefault(thismod['name'],[]).append(modifiers.normfactor.required_parset(
+                defined_samp['data'], thismod['data']
+        ))
+
+class shapefactor_helper:
+    def __init__(self, config):
+        self.mega_mods = {}
+        self.config = config
+        self.parameters = {}
+
+    def collect(self, thismod,nom):
+        maskval = True if thismod else False
+        mask = [maskval] * len(nom)
+        return {'mask': mask}
+
+    def append(self,key,c,s,thismod,defined_samp):
+        self.mega_mods.setdefault(key, {}).setdefault(s,{}).setdefault(
+            'data',{'mask': []}
+        )
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[c]
+        )
+        moddata = self.collect(thismod,nom)
+        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+        if thismod:
+            self.parameters.setdefault(thismod['name'],[]).append(modifiers.shapefactor.required_parset(
+                defined_samp['data'], thismod['data']
+        ))
 
 class shapesys_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
+        self.parameters = {}
 
     def collect(self,thismod,nom):
         uncrt = thismod['data'] if thismod else [0.0] * len(nom)
@@ -167,10 +227,16 @@ class shapesys_helper:
         self.mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
         self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
+        if thismod:
+            self.parameters.setdefault(thismod['name'],[]).append(modifiers.shapesys.required_parset(
+                defined_samp['data'], thismod['data']
+        ))
+
 class staterr_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
+        self.parameters = {}
 
     def collect(self,thismod,nom):
         uncrt = thismod['data'] if thismod else [0.0] * len(nom)
@@ -191,11 +257,16 @@ class staterr_helper:
         self.mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
         self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
+        if thismod:
+            self.parameters.setdefault(thismod['name'],[]).append(modifiers.staterror.required_parset(
+                defined_samp['data'], thismod['data']
+        ))
 
 class histosys_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
+        self.parameters = {}
 
     def collect(self,thismod,nom):
         lo_data = thismod['data']['lo_data'] if thismod else nom
@@ -219,10 +290,16 @@ class histosys_helper:
         self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
 
+        if thismod:
+            self.parameters.setdefault(thismod['name'],[]).append(modifiers.histosys.required_parset(
+                defined_samp['data'], thismod['data']
+        ))
+
 class normsys_helper:
     def __init__(self, config):
         self.mega_mods = {}
         self.config = config
+        self.parameters = {}
 
     def collect(self,thismod,nom):
         maskval = True if thismod else False
@@ -238,6 +315,7 @@ class normsys_helper:
         self.mega_mods.setdefault(key, {}).setdefault(s,{}).setdefault(
             'data',{'hi': [], 'lo': [], 'nom_data': [], 'mask': []}
         )
+
         nom = (
             defined_samp['data']
             if defined_samp
@@ -248,6 +326,11 @@ class normsys_helper:
         self.mega_mods[key][s]['data']['lo'] += moddata['lo']
         self.mega_mods[key][s]['data']['hi'] += moddata['hi']
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+
+        if thismod:
+            self.parameters.setdefault(thismod['name'],[]).append(modifiers.normsys.required_parset(
+                defined_samp['data'], thismod['data']
+            ))
 
 
 
@@ -273,9 +356,9 @@ def _nominal_and_modifiers_from_spec(config, spec,batch_size):
     modifiers_helpers = {
         'histosys': histosys_helper(config),
         'normsys': normsys_helper(config),
-        'normfactor': maskonly_helper(config),
-        'shapefactor': maskonly_helper(config),
-        'lumi': maskonly_helper(config),
+        'normfactor': normfactor_helper(config),
+        'shapefactor': shapefactor_helper(config),
+        'lumi': lumi_helper(config),
         'shapesys': shapesys_helper(config),
         'staterror': staterr_helper(config)
     }
@@ -299,6 +382,11 @@ def _nominal_and_modifiers_from_spec(config, spec,batch_size):
     mega_mods = {k:v.mega_mods for k,v in modifiers_helpers.items()}
 
 
+    _parset_reqs = {}
+    for k,v in modifiers_helpers.items():
+        for pname, req_list in v.parameters.items():
+            _parset_reqs.setdefault(pname,[]).append(req_list)
+
     standard_modifiers = {
         k: c(
             [x for x in config.modifiers if x[1] == k],  # x[1] is mtype
@@ -316,10 +404,6 @@ def _nominal_and_modifiers_from_spec(config, spec,batch_size):
 class _ModelConfig(_ChannelSummaryMixin):
     def __init__(self, spec, **config_kwargs):
         super().__init__(channels=spec['channels'])
-        _required_paramsets = _paramset_requirements_from_modelspec(
-            spec, self.channel_nbins,config_kwargs.pop('custom_modifiers_params')
-        )
-        poi_name = config_kwargs.pop('poi_name', 'mu')
 
         default_modifier_settings = {
             'normsys': {'interpcode': 'code4'},
@@ -341,12 +425,15 @@ class _ModelConfig(_ChannelSummaryMixin):
         self.poi_index = None
         self.auxdata = []
         self.auxdata_order = []
+        self.nmaindata = sum(self.channel_nbins.values())
+
+
+    def set_parameters(self,poi_name,_required_paramsets):
         self._create_and_register_paramsets(_required_paramsets)
         if poi_name is not None:
             self.set_poi(poi_name)
 
         self.npars = len(self.suggested_init())
-        self.nmaindata = sum(self.channel_nbins.values())
 
     def suggested_init(self):
         init = []
@@ -654,9 +741,17 @@ class Model:
         log.info(f"Validating spec against schema: {self.schema:s}")
         utils.validate(self.spec, self.schema, version=self.version)
         # build up our representation of the specification
-        self.config = _ModelConfig(self.spec, custom_modifiers_params = [
+        self.config = _ModelConfig(self.spec,**config_kwargs)
+
+
+
+        _required_paramsets = _paramset_requirements_from_modelspec(
+            spec, self.config.channel_nbins,custom_modifiers_params = [
             c.required_parsets for c in custom_modifiers
-        ], **config_kwargs)
+        ]
+        )
+        poi_name = config_kwargs.pop('poi_name', 'mu')
+        self.config.set_parameters(poi_name,_required_paramsets)
 
         standard_modifiers, _nominal_rates = _nominal_and_modifiers_from_spec(
             self.config, self.spec, self.batch_size
