@@ -303,9 +303,9 @@ def _nominal_and_modifiers_from_spec(config, spec):
                 thismod = defined_mods.get(key)
                 modifiers_helpers[mtype].append(key,c,s,thismod,defined_samp)
 
-    _nominal_rates = nominal.apply()
+    nominal_rates = nominal.apply()
 
-    return mega_mods, _nominal_rates
+    return mega_mods, nominal_rates
 
 
 class _ModelConfig(_ChannelSummaryMixin):
