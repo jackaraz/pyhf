@@ -61,14 +61,7 @@ def _paramset_requirements_from_channelspec(spec, channel_nbins):
     return _paramsets_requirements
 
 
-def _paramset_requirements_from_modelspec(spec, channel_nbins, custom_modifiers_params):
-    _paramsets_requirements = _paramset_requirements_from_channelspec(
-        spec, channel_nbins
-    )
-    for req in custom_modifiers_params:
-        for k,v in req.items():
-            _paramsets_requirements.setdefault(k,[]).append(v)
-
+def _paramset_requirements_from_modelspec(spec, _paramsets_requirements, channel_nbins, custom_modifiers_params):
     # build up a dictionary of the parameter configurations provided by the user
     _paramsets_user_configs = {}
     for parameter in spec.get('parameters', []):
@@ -334,7 +327,7 @@ class normsys_helper:
 
 
 
-def _nominal_and_modifiers_from_spec(config, spec,batch_size):
+def _nominal_and_modifiers_from_spec(poi_name,config, spec,batch_size):
     # the mega-channel will consist of mega-samples that subscribe to
     # mega-modifiers. i.e. while in normal histfactory, each sample might
     # be affected by some modifiers and some not, here we change it so that
@@ -385,7 +378,14 @@ def _nominal_and_modifiers_from_spec(config, spec,batch_size):
     _parset_reqs = {}
     for k,v in modifiers_helpers.items():
         for pname, req_list in v.parameters.items():
-            _parset_reqs.setdefault(pname,[]).append(req_list)
+            _parset_reqs.setdefault(pname,[])
+            _parset_reqs[pname] += req_list
+
+    _required_paramsets = _paramset_requirements_from_modelspec(
+        spec, _parset_reqs, config.channel_nbins,custom_modifiers_params = []
+    )
+    poi_name = poi_name
+    config.set_parameters(poi_name,_required_paramsets)
 
     standard_modifiers = {
         k: c(
@@ -745,16 +745,9 @@ class Model:
 
 
 
-        _required_paramsets = _paramset_requirements_from_modelspec(
-            spec, self.config.channel_nbins,custom_modifiers_params = [
-            c.required_parsets for c in custom_modifiers
-        ]
-        )
-        poi_name = config_kwargs.pop('poi_name', 'mu')
-        self.config.set_parameters(poi_name,_required_paramsets)
 
         standard_modifiers, _nominal_rates = _nominal_and_modifiers_from_spec(
-            self.config, self.spec, self.batch_size
+            config_kwargs.pop('poi_name'), self.config, self.spec, self.batch_size
         )
 
         for custom in custom_modifiers:
