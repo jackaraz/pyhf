@@ -121,8 +121,8 @@ class nominal_helper:
 
 
 class maskonly_helper:
-    def __init__(self, config, mega_mods):
-        self.mega_mods = mega_mods
+    def __init__(self, config):
+        self.mega_mods = {}
         self.config = config
 
     def collect(self, thismod,nom):
@@ -131,6 +131,9 @@ class maskonly_helper:
         return {'mask': mask}
 
     def append(self,key,c,s,thismod,defined_samp):
+        self.mega_mods.setdefault(key, {}).setdefault(s,{}).setdefault(
+            'data',{'mask': []}
+        )
         nom = (
             defined_samp['data']
             if defined_samp
@@ -140,8 +143,8 @@ class maskonly_helper:
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
 
 class shapesys_helper:
-    def __init__(self, config, mega_mods):
-        self.mega_mods = mega_mods
+    def __init__(self, config):
+        self.mega_mods = {}
         self.config = config
 
     def collect(self,thismod,nom):
@@ -151,6 +154,9 @@ class shapesys_helper:
         return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
     def append(self,key,c,s,thismod,defined_samp):
+        self.mega_mods.setdefault(key, {}).setdefault(s,{}).setdefault(
+            'data',{'uncrt': [], 'nom_data': [], 'mask': []}
+        )
         nom = (
             defined_samp['data']
             if defined_samp
@@ -162,8 +168,8 @@ class shapesys_helper:
         self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
 class staterr_helper:
-    def __init__(self, config, mega_mods):
-        self.mega_mods = mega_mods
+    def __init__(self, config):
+        self.mega_mods = {}
         self.config = config
 
     def collect(self,thismod,nom):
@@ -172,6 +178,9 @@ class staterr_helper:
         return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
     def append(self,key,c,s,thismod,defined_samp):
+        self.mega_mods.setdefault(key, {}).setdefault(s,{}).setdefault(
+            'data',{'uncrt': [], 'nom_data': [], 'mask': []}
+        )
         nom = (
             defined_samp['data']
             if defined_samp
@@ -184,8 +193,8 @@ class staterr_helper:
 
 
 class histosys_helper:
-    def __init__(self, config, mega_mods):
-        self.mega_mods = mega_mods
+    def __init__(self, config):
+        self.mega_mods = {}
         self.config = config
 
     def collect(self,thismod,nom):
@@ -196,6 +205,9 @@ class histosys_helper:
         return {'lo_data': lo_data, 'hi_data': hi_data, 'mask': mask, 'nom_data': nom}
 
     def append(self,key,c,s,thismod,defined_samp):
+        self.mega_mods.setdefault(key, {}).setdefault(s,{}).setdefault(
+            'data',{'hi_data': [], 'lo_data': [], 'nom_data': [], 'mask': []}
+        )
         nom = (
             defined_samp['data']
             if defined_samp
@@ -208,8 +220,8 @@ class histosys_helper:
         self.mega_mods[key][s]['data']['mask'] += moddata['mask']
 
 class normsys_helper:
-    def __init__(self, config, mega_mods):
-        self.mega_mods = mega_mods
+    def __init__(self, config):
+        self.mega_mods = {}
         self.config = config
 
     def collect(self,thismod,nom):
@@ -223,6 +235,9 @@ class normsys_helper:
         return {'lo': lo, 'hi': hi, 'mask': mask, 'nom_data': nom_data}
 
     def append(self,key,c,s,thismod,defined_samp):
+        self.mega_mods.setdefault(key, {}).setdefault(s,{}).setdefault(
+            'data',{'hi': [], 'lo': [], 'nom_data': [], 'mask': []}
+        )
         nom = (
             defined_samp['data']
             if defined_samp
@@ -237,16 +252,6 @@ class normsys_helper:
 
 
 def _nominal_and_modifiers_from_spec(config, spec):
-    default_data_makers = {
-        'histosys': lambda: {'hi_data': [], 'lo_data': [], 'nom_data': [], 'mask': []},
-        'lumi': lambda: {'mask': []},
-        'normsys': lambda: {'hi': [], 'lo': [], 'nom_data': [], 'mask': []},
-        'normfactor': lambda: {'mask': []},
-        'shapefactor': lambda: {'mask': []},
-        'shapesys': lambda: {'mask': [], 'uncrt': [], 'nom_data': []},
-        'staterror': lambda: {'mask': [], 'uncrt': [], 'nom_data': []},
-    }
-
     # the mega-channel will consist of mega-samples that subscribe to
     # mega-modifiers. i.e. while in normal histfactory, each sample might
     # be affected by some modifiers and some not, here we change it so that
@@ -257,16 +262,6 @@ def _nominal_and_modifiers_from_spec(config, spec):
     #
     # We don't actually set up the modifier data here for no-ops, but we do
     # set up the entire structure
-    mega_mods = {}
-    mega_mods_two = {}
-    for m, mtype in config.modifiers:
-        for s in config.samples:
-            key = f'{mtype}/{m}'
-            mega_mods.setdefault(mtype,{}).setdefault(key, {})[s] = {
-                'type': mtype,
-                'name': m,
-                'data': default_data_makers[mtype](),
-            }
 
     # helper maps channel-name/sample-name to pairs of channel-sample structs
     helper = {}
@@ -276,13 +271,13 @@ def _nominal_and_modifiers_from_spec(config, spec):
             helper.setdefault(c['name'], {})[s['name']] = (s, moddict)
 
     modifiers_helpers = {
-        'histosys': histosys_helper(config,mega_mods.get('histosys')),
-        'normsys': normsys_helper(config,mega_mods.get('normsys')),
-        'normfactor': maskonly_helper(config,mega_mods.get('normfactor')),
-        'shapefactor': maskonly_helper(config,mega_mods.get('shapefactor')),
-        'lumi': maskonly_helper(config,mega_mods.get('lumi')),
-        'shapesys': shapesys_helper(config,mega_mods.get('shapesys')),
-        'staterror': staterr_helper(config,mega_mods.get('staterror'))
+        'histosys': histosys_helper(config),
+        'normsys': normsys_helper(config),
+        'normfactor': maskonly_helper(config),
+        'shapefactor': maskonly_helper(config),
+        'lumi': maskonly_helper(config),
+        'shapesys': shapesys_helper(config),
+        'staterror': staterr_helper(config)
     }
 
     nominal = nominal_helper(config)
@@ -300,6 +295,9 @@ def _nominal_and_modifiers_from_spec(config, spec):
                 modifiers_helpers[mtype].append(key,c,s,thismod,defined_samp)
 
     nominal_rates = nominal.apply()
+
+    mega_mods = {k:v.mega_mods for k,v in modifiers_helpers.items()}
+
 
     return mega_mods, nominal_rates
 
