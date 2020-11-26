@@ -25,8 +25,8 @@ class staterror:
 
 class staterror_combined:
     def __init__(self, staterr_mods, pdfconfig, mega_mods, batch_size=None):
-        self.name = staterror.name 
-        self.op_code = staterror.op_code 
+        self.name = staterror.name
+        self.op_code = staterror.op_code
         self.batch_size = batch_size
 
         keys = [f'{mtype}/{m}' for m, mtype in staterr_mods]

@@ -25,8 +25,8 @@ class normfactor:
 class normfactor_combined:
     def __init__(self, normfactor_mods, pdfconfig, mega_mods, batch_size=None):
         self.batch_size = batch_size
-        self.name = normfactor.name 
-        self.op_code = normfactor.op_code 
+        self.name = normfactor.name
+        self.op_code = normfactor.op_code
 
         keys = [f'{mtype}/{m}' for m, mtype in normfactor_mods]
         normfactor_mods = [m for m, _ in normfactor_mods]
