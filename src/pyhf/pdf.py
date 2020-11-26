@@ -91,6 +91,39 @@ def _paramset_requirements_from_modelspec(spec, channel_nbins, custom_modifiers_
     return _sets
 
 
+def collect_mask_only(thismod,nom):
+    maskval = True if thismod else False
+    mask = [maskval] * len(nom)
+    return {'mask': mask}
+
+def collect_shapesys(thismod,nom):
+    uncrt = thismod['data'] if thismod else [0.0] * len(nom)
+    maskval = [(x > 0 and y > 0) for x, y in zip(uncrt, nom)]
+    mask = [maskval] * len(nom)
+    return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
+
+def collect_staterr(thismod,nom):
+    uncrt = thismod['data'] if thismod else [0.0] * len(nom)
+    mask = [True if thismod else False] * len(nom)
+    return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
+
+def collect_histosys(thismod,nom):
+    lo_data = thismod['data']['lo_data'] if thismod else nom
+    hi_data = thismod['data']['hi_data'] if thismod else nom
+    maskval = True if thismod else False
+    mask = [maskval] * len(nom)
+    return {'lo_data': lo_data, 'hi_data': hi_data, 'mask': mask, 'nom_data': nom}
+
+def collect_normsys(thismod,nom):
+    maskval = True if thismod else False
+    lo_factor = thismod['data']['lo'] if thismod else 1.0
+    hi_factor = thismod['data']['hi'] if thismod else 1.0
+    nom_data = [1.0] * len(nom)
+    lo = [lo_factor] * len(nom)  # broadcasting
+    hi = [hi_factor] * len(nom)
+    mask = [maskval] * len(nom)
+    return {'lo': lo, 'hi': hi, 'mask': mask, 'nom_data': nom_data}
+
 def _nominal_and_modifiers_from_spec(config, spec):
     default_data_makers = {
         'histosys': lambda: {'hi_data': [], 'lo_data': [], 'nom_data': [], 'mask': []},
@@ -151,43 +184,34 @@ def _nominal_and_modifiers_from_spec(config, spec):
                 key = f'{mtype}/{m}'
                 # this is None if modifier doesn't affect channel/sample.
                 thismod = defined_mods.get(key)
-                # print('key',key,thismod['data'] if thismod else None)
                 if mtype == 'histosys':
-                    lo_data = thismod['data']['lo_data'] if thismod else nom
-                    hi_data = thismod['data']['hi_data'] if thismod else nom
-                    maskval = True if thismod else False
-                    mega_mods[key][s]['data']['lo_data'] += lo_data
-                    mega_mods[key][s]['data']['hi_data'] += hi_data
-                    mega_mods[key][s]['data']['nom_data'] += nom
-                    mega_mods[key][s]['data']['mask'] += [maskval] * len(
-                        nom
-                    )  # broadcasting
+                    moddata = collect_histosys(thismod,nom)
+                    mega_mods[key][s]['data']['lo_data'] += moddata['lo_data']
+                    mega_mods[key][s]['data']['hi_data'] += moddata['hi_data']
+                    mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+                    mega_mods[key][s]['data']['mask'] += moddata['mask']
                 elif mtype == 'normsys':
-                    maskval = True if thismod else False
-                    lo_factor = thismod['data']['lo'] if thismod else 1.0
-                    hi_factor = thismod['data']['hi'] if thismod else 1.0
-                    mega_mods[key][s]['data']['nom_data'] += [1.0] * len(nom)
-                    mega_mods[key][s]['data']['lo'] += [lo_factor] * len(
-                        nom
-                    )  # broadcasting
-                    mega_mods[key][s]['data']['hi'] += [hi_factor] * len(nom)
-                    mega_mods[key][s]['data']['mask'] += [maskval] * len(
-                        nom
-                    )  # broadcasting
+                    moddata = collect_normsys(thismod,nom)
+                    mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+                    mega_mods[key][s]['data']['lo'] += moddata['lo']
+                    mega_mods[key][s]['data']['hi'] += moddata['hi']
+                    mega_mods[key][s]['data']['mask'] += moddata['mask']
                 elif mtype in ['normfactor', 'shapefactor', 'lumi']:
                     maskval = True if thismod else False
                     mega_mods[key][s]['data']['mask'] += [maskval] * len(
                         nom
                     )  # broadcasting
-                elif mtype in ['shapesys', 'staterror']:
-                    uncrt = thismod['data'] if thismod else [0.0] * len(nom)
-                    if mtype == 'shapesys':
-                        maskval = [(x > 0 and y > 0) for x, y in zip(uncrt, nom)]
-                    else:
-                        maskval = [True if thismod else False] * len(nom)
-                    mega_mods[key][s]['data']['mask'] += maskval
-                    mega_mods[key][s]['data']['uncrt'] += uncrt
-                    mega_mods[key][s]['data']['nom_data'] += nom
+                elif mtype == 'shapesys':
+                    moddata = collect_shapesys(thismod,nom)
+                    mega_mods[key][s]['data']['mask'] += moddata['mask']
+                    mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
+                    mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+                elif mtype == 'staterror':
+                    moddata = collect_staterr(thismod,nom)
+                    mega_mods[key][s]['data']['mask'] += moddata['mask']
+                    mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
+                    mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+
 
 
     nominal_rates = default_backend.astensor(
