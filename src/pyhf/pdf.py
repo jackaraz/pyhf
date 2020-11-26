@@ -764,7 +764,7 @@ class Model:
             custom_modifiers, self.config, self.spec, self.batch_size
         )
 
-        poi_name = config_kwargs.pop('poi_name','mu')
+        poi_name = config_kwargs.pop('poi_name', 'mu')
         if poi_name is not None:
             self.config.set_poi(poi_name)
 
