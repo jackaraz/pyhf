@@ -262,12 +262,11 @@ def _nominal_and_modifiers_from_spec(config, spec):
     for m, mtype in config.modifiers:
         for s in config.samples:
             key = f'{mtype}/{m}'
-            mega_mods.setdefault(key, {})[s] = {
+            mega_mods.setdefault(mtype,{}).setdefault(key, {})[s] = {
                 'type': mtype,
                 'name': m,
                 'data': default_data_makers[mtype](),
             }
-            mega_mods_two.setdefault(key,{})[s] = []
 
     # helper maps channel-name/sample-name to pairs of channel-sample structs
     helper = {}
@@ -277,13 +276,13 @@ def _nominal_and_modifiers_from_spec(config, spec):
             helper.setdefault(c['name'], {})[s['name']] = (s, moddict)
 
     modifiers_helpers = {
-        'histosys': histosys_helper(config,mega_mods),
-        'normsys': normsys_helper(config,mega_mods),
-        'normfactor': maskonly_helper(config,mega_mods),
-        'shapefactor': maskonly_helper(config,mega_mods),
-        'lumi': maskonly_helper(config,mega_mods),
-        'shapesys': shapesys_helper(config,mega_mods),
-        'staterror': staterr_helper(config,mega_mods)
+        'histosys': histosys_helper(config,mega_mods.get('histosys')),
+        'normsys': normsys_helper(config,mega_mods.get('normsys')),
+        'normfactor': maskonly_helper(config,mega_mods.get('normfactor')),
+        'shapefactor': maskonly_helper(config,mega_mods.get('shapefactor')),
+        'lumi': maskonly_helper(config,mega_mods.get('lumi')),
+        'shapesys': shapesys_helper(config,mega_mods.get('shapesys')),
+        'staterror': staterr_helper(config,mega_mods.get('staterror'))
     }
 
     nominal = nominal_helper(config)
@@ -518,7 +517,7 @@ class _MainModel:
             k: c(
                 [x for x in config.modifiers if x[1] == k],  # x[1] is mtype
                 config,
-                mega_mods,
+                mega_mods.get(k),
                 batch_size=self.batch_size,
                 **config.modifier_settings.get(k, {}),
             )
