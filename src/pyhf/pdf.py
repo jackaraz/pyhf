@@ -110,15 +110,19 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
             moddict = {f"{x['type']}/{x['name']}": x for x in s['modifiers']}
             helper.setdefault(c['name'], {})[s['name']] = (s, moddict)
 
-    modifiers_builders = {
-        'histosys': histosys_builder(config),
-        'normsys': normsys_builder(config),
-        'normfactor': normfactor_builder(config),
-        'shapefactor': shapefactor_builder(config),
-        'lumi': lumi_builder(config),
-        'shapesys': shapesys_builder(config),
-        'staterror': staterr_builder(config),
+    builders = {
+        'histosys': histosys_builder,
+        'normsys': normsys_builder,
+        'normfactor': normfactor_builder,
+        'shapefactor': shapefactor_builder,
+        'lumi': lumi_builder,
+        'shapesys': shapesys_builder,
+        'staterror': staterr_builder,
     }
+
+    modifiers_builders = {}
+    for k,c in builders.items():
+        modifiers_builders[k] = c(config)
 
     for k, c in custom_modifiers.items():
         modifiers_builders[k] = c[0](config)
