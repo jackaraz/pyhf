@@ -404,10 +404,10 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
 
     _parset_reqs = {}
 
-    custom_builders = [c[0] for c in custom_modifiers]
-    custom_appliers = [c[1] for c in custom_modifiers]
+    custom_builders = {k: c[0](config) for k,c in custom_modifiers.items()}
+    custom_appliers = {k: c[1] for k,c in custom_modifiers.items()}
 
-    for v in list(modifiers_builders.values()) + custom_builders:
+    for v in list(modifiers_builders.values()) + list(custom_builders.values()):
         for pname, req_list in v.required_parsets.items():
             _parset_reqs.setdefault(pname, [])
             _parset_reqs[pname] += req_list
@@ -433,8 +433,8 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
         for k, c in modifiers.combined.items()
     }
 
-    for custom in custom_appliers:
-        standard_modifiers[custom.name] = custom(
+    for k,c in custom_appliers.items():
+        standard_modifiers[k] = c(
             pdfconfig = config
         )
 
