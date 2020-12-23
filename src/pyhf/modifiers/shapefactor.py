@@ -80,7 +80,7 @@ class shapefactor_builder:
         self._mega_mods[key][sample]['data']['mask'] += moddata['mask']
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                modifiers.shapefactor.required_parset(
+                shapefactor.required_parset(
                     defined_samp['data'], thismod['data']
                 )
             )

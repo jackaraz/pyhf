@@ -165,23 +165,13 @@ def modifier(*args, **kwargs):
         )
 
 
-from .histosys import histosys, histosys_combined
-from .lumi import lumi, lumi_combined
-from .normfactor import normfactor, normfactor_combined
-from .normsys import normsys, normsys_combined
-from .shapefactor import shapefactor, shapefactor_combined
-from .shapesys import shapesys, shapesys_combined
-from .staterror import staterror, staterror_combined
-
-uncombined = {
-    'histosys': histosys,
-    'lumi': lumi,
-    'normfactor': normfactor,
-    'normsys': normsys,
-    'shapefactor': shapefactor,
-    'shapesys': shapesys,
-    'staterror': staterror,
-}
+from .histosys import histosys_combined
+from .lumi import lumi_combined
+from .normfactor import normfactor_combined
+from .normsys import normsys_combined
+from .shapefactor import shapefactor_combined
+from .shapesys import shapesys_combined
+from .staterror import staterror_combined
 
 combined = {
     'histosys': histosys_combined,
