@@ -116,7 +116,7 @@ class nominal_helper:
 
 class lumi_helper:
     def __init__(self, config):
-        self.mega_mods = {}
+        self._mega_mods = {}
         self.config = config
         self.required_parsets = {}
 
@@ -126,7 +126,7 @@ class lumi_helper:
         return {'mask': mask}
 
     def append(self, key, c, s, thismod, defined_samp):
-        self.mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
+        self._mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
             'data', {'mask': []}
         )
         nom = (
@@ -135,16 +135,18 @@ class lumi_helper:
             else [0.0] * self.config.channel_nbins[c]
         )
         moddata = self.collect(thismod, nom)
-        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self._mega_mods[key][s]['data']['mask'] += moddata['mask']
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
                 modifiers.lumi.required_parset(defined_samp['data'], thismod['data'])
             )
 
+    def finalize(self):
+        return self._mega_mods
 
 class normfactor_helper:
     def __init__(self, config):
-        self.mega_mods = {}
+        self._mega_mods = {}
         self.config = config
         self.required_parsets = {}
 
@@ -154,7 +156,7 @@ class normfactor_helper:
         return {'mask': mask}
 
     def append(self, key, c, s, thismod, defined_samp):
-        self.mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
+        self._mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
             'data', {'mask': []}
         )
         nom = (
@@ -163,7 +165,7 @@ class normfactor_helper:
             else [0.0] * self.config.channel_nbins[c]
         )
         moddata = self.collect(thismod, nom)
-        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self._mega_mods[key][s]['data']['mask'] += moddata['mask']
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
                 modifiers.normfactor.required_parset(
@@ -171,10 +173,13 @@ class normfactor_helper:
                 )
             )
 
+    def finalize(self):
+        return self._mega_mods
+
 
 class shapefactor_helper:
     def __init__(self, config):
-        self.mega_mods = {}
+        self._mega_mods = {}
         self.config = config
         self.required_parsets = {}
 
@@ -184,7 +189,7 @@ class shapefactor_helper:
         return {'mask': mask}
 
     def append(self, key, c, s, thismod, defined_samp):
-        self.mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
+        self._mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
             'data', {'mask': []}
         )
         nom = (
@@ -193,7 +198,7 @@ class shapefactor_helper:
             else [0.0] * self.config.channel_nbins[c]
         )
         moddata = self.collect(thismod, nom)
-        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self._mega_mods[key][s]['data']['mask'] += moddata['mask']
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
                 modifiers.shapefactor.required_parset(
@@ -201,10 +206,12 @@ class shapefactor_helper:
                 )
             )
 
+    def finalize(self):
+        return self._mega_mods
 
 class shapesys_helper:
     def __init__(self, config):
-        self.mega_mods = {}
+        self._mega_mods = {}
         self.config = config
         self.required_parsets = {}
 
@@ -214,7 +221,7 @@ class shapesys_helper:
         return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
     def append(self, key, c, s, thismod, defined_samp):
-        self.mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
+        self._mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
             'data', {'uncrt': [], 'nom_data': [], 'mask': []}
         )
         nom = (
@@ -223,9 +230,9 @@ class shapesys_helper:
             else [0.0] * self.config.channel_nbins[c]
         )
         moddata = self.collect(thismod, nom)
-        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
-        self.mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
-        self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+        self._mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self._mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
+        self._mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
@@ -234,10 +241,13 @@ class shapesys_helper:
                 )
             )
 
+    def finalize(self):
+        return self._mega_mods
+
 
 class staterr_helper:
     def __init__(self, config):
-        self.mega_mods = {}
+        self._mega_mods = {}
         self.config = config
         self.required_parsets = {}
 
@@ -247,7 +257,7 @@ class staterr_helper:
         return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
 
     def append(self, key, c, s, thismod, defined_samp):
-        self.mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
+        self._mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
             'data', {'uncrt': [], 'nom_data': [], 'mask': []}
         )
         nom = (
@@ -256,9 +266,9 @@ class staterr_helper:
             else [0.0] * self.config.channel_nbins[c]
         )
         moddata = self.collect(thismod, nom)
-        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
-        self.mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
-        self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+        self._mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self._mega_mods[key][s]['data']['uncrt'] += moddata['uncrt']
+        self._mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
@@ -267,10 +277,13 @@ class staterr_helper:
                 )
             )
 
+    def finalize(self):
+        return self._mega_mods
+
 
 class histosys_helper:
     def __init__(self, config):
-        self.mega_mods = {}
+        self._mega_mods = {}
         self.config = config
         self.required_parsets = {}
 
@@ -282,7 +295,7 @@ class histosys_helper:
         return {'lo_data': lo_data, 'hi_data': hi_data, 'mask': mask, 'nom_data': nom}
 
     def append(self, key, c, s, thismod, defined_samp):
-        self.mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
+        self._mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
             'data', {'hi_data': [], 'lo_data': [], 'nom_data': [], 'mask': []}
         )
         nom = (
@@ -291,10 +304,10 @@ class histosys_helper:
             else [0.0] * self.config.channel_nbins[c]
         )
         moddata = self.collect(thismod, nom)
-        self.mega_mods[key][s]['data']['lo_data'] += moddata['lo_data']
-        self.mega_mods[key][s]['data']['hi_data'] += moddata['hi_data']
-        self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
-        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self._mega_mods[key][s]['data']['lo_data'] += moddata['lo_data']
+        self._mega_mods[key][s]['data']['hi_data'] += moddata['hi_data']
+        self._mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+        self._mega_mods[key][s]['data']['mask'] += moddata['mask']
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
@@ -302,11 +315,14 @@ class histosys_helper:
                     defined_samp['data'], thismod['data']
                 )
             )
+    
+    def finalize(self):
+        return self._mega_mods
 
 
 class normsys_helper:
     def __init__(self, config):
-        self.mega_mods = {}
+        self._mega_mods = {}
         self.config = config
         self.required_parsets = {}
 
@@ -321,7 +337,7 @@ class normsys_helper:
         return {'lo': lo, 'hi': hi, 'mask': mask, 'nom_data': nom_data}
 
     def append(self, key, c, s, thismod, defined_samp):
-        self.mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
+        self._mega_mods.setdefault(key, {}).setdefault(s, {}).setdefault(
             'data', {'hi': [], 'lo': [], 'nom_data': [], 'mask': []}
         )
 
@@ -331,15 +347,18 @@ class normsys_helper:
             else [0.0] * self.config.channel_nbins[c]
         )
         moddata = self.collect(thismod, nom)
-        self.mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
-        self.mega_mods[key][s]['data']['lo'] += moddata['lo']
-        self.mega_mods[key][s]['data']['hi'] += moddata['hi']
-        self.mega_mods[key][s]['data']['mask'] += moddata['mask']
+        self._mega_mods[key][s]['data']['nom_data'] += moddata['nom_data']
+        self._mega_mods[key][s]['data']['lo'] += moddata['lo']
+        self._mega_mods[key][s]['data']['hi'] += moddata['hi']
+        self._mega_mods[key][s]['data']['mask'] += moddata['mask']
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
                 modifiers.normsys.required_parset(defined_samp['data'], thismod['data'])
             )
+
+    def finalize(self):
+        return self._mega_mods
 
 
 def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size):
@@ -361,7 +380,7 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
             moddict = {f"{x['type']}/{x['name']}": x for x in s['modifiers']}
             helper.setdefault(c['name'], {})[s['name']] = (s, moddict)
 
-    modifiers_helpers = {
+    modifiers_builders = {
         'histosys': histosys_helper(config),
         'normsys': normsys_helper(config),
         'normfactor': normfactor_helper(config),
@@ -384,14 +403,14 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
                 key = f'{mtype}/{m}'
                 # this is None if modifier doesn't affect channel/sample.
                 thismod = defined_mods.get(key) if defined_mods else None
-                modifiers_helpers[mtype].append(key, c, s, thismod, defined_samp)
+                modifiers_builders[mtype].append(key, c, s, thismod, defined_samp)
 
     nominal_rates = nominal.apply()
 
-    mega_mods = {k: v.mega_mods for k, v in modifiers_helpers.items()}
+    mega_mods = {k: v.finalize() for k, v in modifiers_builders.items()}
 
     _parset_reqs = {}
-    for v in list(modifiers_helpers.values()) + custom_modifiers:
+    for v in list(modifiers_builders.values()) + custom_modifiers:
         for pname, req_list in v.required_parsets.items():
             _parset_reqs.setdefault(pname, [])
             _parset_reqs[pname] += req_list
