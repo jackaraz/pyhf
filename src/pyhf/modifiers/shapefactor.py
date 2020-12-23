@@ -23,7 +23,7 @@ class shapefactor:
 
 
 class shapefactor_combined:
-    def __init__(self, shapefactor_mods, pdfconfig, mega_mods, batch_size=None):
+    def __init__(self, modifiers, pdfconfig, mega_mods, batch_size=None):
         """
         Imagine a situation where we have 2 channels (SR, CR), 3 samples (sig1,
         bkg1, bkg2), and 2 shapefactor modifiers (coupled_shapefactor,
@@ -64,8 +64,8 @@ class shapefactor_combined:
         self.name = shapefactor.name
         self.op_code = shapefactor.op_code
         self.batch_size = batch_size
-        keys = [f'{mtype}/{m}' for m, mtype in shapefactor_mods]
-        shapefactor_mods = [m for m, _ in shapefactor_mods]
+        keys = [f'{mtype}/{m}' for m, mtype in modifiers]
+        shapefactor_mods = [m for m, _ in modifiers]
 
         parfield_shape = (self.batch_size or 1, pdfconfig.npars)
         self.param_viewer = ParamViewer(

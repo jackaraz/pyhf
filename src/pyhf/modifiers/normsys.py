@@ -26,15 +26,15 @@ class normsys:
 
 class normsys_combined:
     def __init__(
-        self, normsys_mods, pdfconfig, mega_mods, interpcode='code1', batch_size=None
+        self, modifiers, pdfconfig, mega_mods, interpcode='code1', batch_size=None
     ):
         self.name = normsys.name
         self.op_code = normsys.op_code
         self.interpcode = interpcode
         assert self.interpcode in ['code1', 'code4']
 
-        keys = [f'{mtype}/{m}' for m, mtype in normsys_mods]
-        normsys_mods = [m for m, _ in normsys_mods]
+        keys = [f'{mtype}/{m}' for m, mtype in modifiers]
+        normsys_mods = [m for m, _ in modifiers]
 
         self.batch_size = batch_size
 

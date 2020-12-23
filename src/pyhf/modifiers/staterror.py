@@ -24,13 +24,13 @@ class staterror:
 
 
 class staterror_combined:
-    def __init__(self, staterr_mods, pdfconfig, mega_mods, batch_size=None):
+    def __init__(self, modifiers, pdfconfig, mega_mods, batch_size=None):
         self.name = staterror.name
         self.op_code = staterror.op_code
         self.batch_size = batch_size
 
-        keys = [f'{mtype}/{m}' for m, mtype in staterr_mods]
-        self._staterr_mods = [m for m, _ in staterr_mods]
+        keys = [f'{mtype}/{m}' for m, mtype in modifiers]
+        self._staterr_mods = [m for m, _ in modifiers]
 
         parfield_shape = (self.batch_size or 1, pdfconfig.npars)
         self.param_viewer = ParamViewer(
@@ -60,7 +60,7 @@ class staterror_combined:
 
         self._access_field = default_backend.tile(
             global_concatenated_bin_indices,
-            (len(staterr_mods), self.batch_size or 1, 1),
+            (len(self._staterr_mods), self.batch_size or 1, 1),
         )
         # access field is shape (sys, batch, globalbin)
         for s, syst_access in enumerate(self._access_field):

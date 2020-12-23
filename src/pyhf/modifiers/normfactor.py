@@ -23,13 +23,13 @@ class normfactor:
 
 
 class normfactor_combined:
-    def __init__(self, normfactor_mods, pdfconfig, mega_mods, batch_size=None):
+    def __init__(self, modifiers, pdfconfig, mega_mods, batch_size=None):
         self.batch_size = batch_size
         self.name = normfactor.name
         self.op_code = normfactor.op_code
 
-        keys = [f'{mtype}/{m}' for m, mtype in normfactor_mods]
-        normfactor_mods = [m for m, _ in normfactor_mods]
+        keys = [f'{mtype}/{m}' for m, mtype in modifiers]
+        normfactor_mods = [m for m, _ in modifiers]
 
         parfield_shape = (
             (self.batch_size, pdfconfig.npars)

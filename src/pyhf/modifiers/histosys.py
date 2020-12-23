@@ -26,7 +26,7 @@ class histosys:
 
 class histosys_combined:
     def __init__(
-        self, histosys_mods, pdfconfig, mega_mods, interpcode='code0', batch_size=None
+        self, modifiers, pdfconfig, mega_mods, interpcode='code0', batch_size=None
     ):
         self.name = histosys.name
         self.op_code = histosys.op_code
@@ -34,8 +34,8 @@ class histosys_combined:
         self.interpcode = interpcode
         assert self.interpcode in ['code0', 'code2', 'code4p']
 
-        keys = [f'{mtype}/{m}' for m, mtype in histosys_mods]
-        histosys_mods = [m for m, _ in histosys_mods]
+        keys = [f'{mtype}/{m}' for m, mtype in modifiers]
+        histosys_mods = [m for m, _ in modifiers]
 
         parfield_shape = (
             (self.batch_size, pdfconfig.npars)

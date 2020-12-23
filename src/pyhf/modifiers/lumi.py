@@ -26,13 +26,13 @@ class lumi:
 
 
 class lumi_combined:
-    def __init__(self, lumi_mods, pdfconfig, mega_mods, batch_size=None):
+    def __init__(self, modifiers, pdfconfig, mega_mods, batch_size=None):
         self.batch_size = batch_size
         self.name = lumi.name
         self.op_code = lumi.op_code
 
-        keys = [f'{mtype}/{m}' for m, mtype in lumi_mods]
-        lumi_mods = [m for m, _ in lumi_mods]
+        keys = [f'{mtype}/{m}' for m, mtype in modifiers]
+        lumi_mods = [m for m, _ in modifiers]
 
         parfield_shape = (
             (self.batch_size, pdfconfig.npars)

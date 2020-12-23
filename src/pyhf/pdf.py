@@ -420,9 +420,9 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
 
     standard_modifiers = {
         k: c(
-            [x for x in config.modifiers if x[1] == k],  # x[1] is mtype
-            config,
-            modifiers_builders[k].finalize() if k in modifiers_builders else None,
+            modifiers = [x for x in config.modifiers if x[1] == k],  # filter modifier names for that mtype (x[1])
+            pdfconfig = config,
+            mega_mods = modifiers_builders[k].finalize() if k in modifiers_builders else None,
             batch_size=batch_size,
             **config.modifier_settings.get(k, {}),
         )
