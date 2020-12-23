@@ -10,18 +10,18 @@ log = logging.getLogger(__name__)
 
 @modifier(name='normsys', constrained=True, op_code='multiplication')
 class normsys:
-    @classmethod
-    def required_parset(cls, sample_data, modifier_data):
-        return {
-            'paramset_type': constrained_by_normal,
-            'n_parameters': 1,
-            'is_constrained': cls.is_constrained,
-            'is_shared': True,
-            'inits': (0.0,),
-            'bounds': ((-5.0, 5.0),),
-            'fixed': False,
-            'auxdata': (0.0,),
-        }
+    pass
+
+def required_parset(sample_data, modifier_data):
+    return {
+        'paramset_type': constrained_by_normal,
+        'n_parameters': 1,
+        'is_shared': True,
+        'inits': (0.0,),
+        'bounds': ((-5.0, 5.0),),
+        'fixed': False,
+        'auxdata': (0.0,),
+    }
 
 class normsys_builder:
     def __init__(self, config):
@@ -57,7 +57,7 @@ class normsys_builder:
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                normsys.required_parset(defined_samp['data'], thismod['data'])
+                required_parset(defined_samp['data'], thismod['data'])
             )
 
     def finalize(self):
@@ -67,8 +67,9 @@ class normsys_combined:
     def __init__(
         self, modifiers, pdfconfig, builder_data, interpcode='code1', batch_size=None
     ):
-        self.name = normsys.name
-        self.op_code = normsys.op_code
+        self.name = 'normsys'
+        self.op_code = 'multiplication'
+        
         self.interpcode = interpcode
         assert self.interpcode in ['code1', 'code4']
 

@@ -7,21 +7,16 @@ from ..parameters import constrained_by_normal, ParamViewer
 
 log = logging.getLogger(__name__)
 
-
-@modifier(name='histosys', constrained=True, op_code='addition')
-class histosys:
-    @classmethod
-    def required_parset(cls, sample_data, modifier_data):
-        return {
-            'paramset_type': constrained_by_normal,
-            'n_parameters': 1,
-            'is_constrained': cls.is_constrained,
-            'is_shared': True,
-            'inits': (0.0,),
-            'bounds': ((-5.0, 5.0),),
-            'fixed': False,
-            'auxdata': (0.0,),
-        }
+def required_parset(sample_data, modifier_data):
+    return {
+        'paramset_type': constrained_by_normal,
+        'n_parameters': 1,
+        'is_shared': True,
+        'inits': (0.0,),
+        'bounds': ((-5.0, 5.0),),
+        'fixed': False,
+        'auxdata': (0.0,),
+    }
 
 class histosys_builder:
     def __init__(self, config):
@@ -53,7 +48,7 @@ class histosys_builder:
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                histosys.required_parset(
+                required_parset(
                     defined_samp['data'], thismod['data']
                 )
             )
@@ -65,8 +60,8 @@ class histosys_combined:
     def __init__(
         self, modifiers, pdfconfig, builder_data, interpcode='code0', batch_size=None
     ):
-        self.name = histosys.name
-        self.op_code = histosys.op_code
+        self.name = 'histosys'
+        self.op_code = 'addition'
         self.batch_size = batch_size
         self.interpcode = interpcode
         assert self.interpcode in ['code0', 'code2', 'code4p']

@@ -6,23 +6,17 @@ from ..parameters import constrained_by_normal, ParamViewer
 
 log = logging.getLogger(__name__)
 
-
-@modifier(name='lumi', constrained=True, pdf_type='normal', op_code='multiplication')
-class lumi:
-    @classmethod
-    def required_parset(cls, sample_data, modifier_data):
-        return {
-            'paramset_type': constrained_by_normal,
-            'n_parameters': 1,
-            'is_constrained': cls.is_constrained,
-            'is_shared': True,
-            'op_code': cls.op_code,
-            'inits': None,  # lumi
-            'bounds': None,  # (0, 10*lumi)
-            'fixed': False,
-            'auxdata': None,  # lumi
-            'sigmas': None,  # lumi * lumirelerror
-        }
+def required_parset(sample_data, modifier_data):
+    return {
+        'paramset_type': constrained_by_normal,
+        'n_parameters': 1,
+        'is_shared': True,
+        'inits': None,  # lumi
+        'bounds': None,  # (0, 10*lumi)
+        'fixed': False,
+        'auxdata': None,  # lumi
+        'sigmas': None,  # lumi * lumirelerror
+    }
 
 class lumi_builder:
     def __init__(self, config):
@@ -48,7 +42,7 @@ class lumi_builder:
         self._mega_mods[key][sample]['data']['mask'] += moddata['mask']
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                lumi.required_parset(defined_samp['data'], thismod['data'])
+                required_parset(defined_samp['data'], thismod['data'])
             )
 
     def finalize(self):
@@ -57,8 +51,8 @@ class lumi_builder:
 class lumi_combined:
     def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
         self.batch_size = batch_size
-        self.name = lumi.name
-        self.op_code = lumi.op_code
+        self.name = 'lumi'
+        self.op_code = 'multiplication'
 
         keys = [f'{mtype}/{m}' for m, mtype in modifiers]
         lumi_mods = [m for m, _ in modifiers]

@@ -6,32 +6,25 @@ from ..parameters import constrained_by_poisson, ParamViewer
 
 log = logging.getLogger(__name__)
 
-
-@modifier(
-    name='shapesys', constrained=True, pdf_type='poisson', op_code='multiplication'
-)
-class shapesys:
-    @classmethod
-    def required_parset(cls, sample_data, modifier_data):
-        # count the number of bins with nonzero, positive yields
-        valid_bins = [
-            (sample_bin > 0 and modifier_bin > 0)
-            for sample_bin, modifier_bin in zip(modifier_data, sample_data)
-        ]
-        n_parameters = sum(valid_bins)
-        return {
-            'paramset_type': constrained_by_poisson,
-            'n_parameters': n_parameters,
-            'is_constrained': cls.is_constrained,
-            'is_shared': False,
-            'inits': (1.0,) * n_parameters,
-            'bounds': ((1e-10, 10.0),) * n_parameters,
-            'fixed': False,
-            # nb: auxdata/factors set by finalize. Set to non-numeric to crash
-            # if we fail to set auxdata/factors correctly
-            'auxdata': (None,) * n_parameters,
-            'factors': (None,) * n_parameters,
-        }
+def required_parset(sample_data, modifier_data):
+    # count the number of bins with nonzero, positive yields
+    valid_bins = [
+        (sample_bin > 0 and modifier_bin > 0)
+        for sample_bin, modifier_bin in zip(modifier_data, sample_data)
+    ]
+    n_parameters = sum(valid_bins)
+    return {
+        'paramset_type': constrained_by_poisson,
+        'n_parameters': n_parameters,
+        'is_shared': False,
+        'inits': (1.0,) * n_parameters,
+        'bounds': ((1e-10, 10.0),) * n_parameters,
+        'fixed': False,
+        # nb: auxdata/factors set by finalize. Set to non-numeric to crash
+        # if we fail to set auxdata/factors correctly
+        'auxdata': (None,) * n_parameters,
+        'factors': (None,) * n_parameters,
+    }
 
 
 class shapesys_builder:
@@ -61,7 +54,7 @@ class shapesys_builder:
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                shapesys.required_parset(
+                required_parset(
                     defined_samp['data'], thismod['data']
                 )
             )
@@ -71,8 +64,8 @@ class shapesys_builder:
 
 class shapesys_combined:
     def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
-        self.name = shapesys.name
-        self.op_code = shapesys.op_code
+        self.name = 'shapesys'
+        self.op_code = 'multiplication'
         self.batch_size = batch_size
 
         keys = [f'{mtype}/{m}' for m, mtype in modifiers]

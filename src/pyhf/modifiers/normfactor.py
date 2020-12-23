@@ -6,20 +6,15 @@ from ..parameters import unconstrained, ParamViewer
 
 log = logging.getLogger(__name__)
 
-
-@modifier(name='normfactor', op_code='multiplication')
-class normfactor:
-    @classmethod
-    def required_parset(cls, sample_data, modifier_data):
-        return {
-            'paramset_type': unconstrained,
-            'n_parameters': 1,
-            'is_constrained': cls.is_constrained,
-            'is_shared': True,
-            'inits': (1.0,),
-            'bounds': ((0, 10),),
-            'fixed': False,
-        }
+def required_parset(sample_data, modifier_data):
+    return {
+        'paramset_type': unconstrained,
+        'n_parameters': 1,
+        'is_shared': True,
+        'inits': (1.0,),
+        'bounds': ((0, 10),),
+        'fixed': False,
+    }
 
 
 class normfactor_builder:
@@ -46,7 +41,7 @@ class normfactor_builder:
         self._mega_mods[key][sample]['data']['mask'] += moddata['mask']
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                normfactor.required_parset(
+                required_parset(
                     defined_samp['data'], thismod['data']
                 )
             )
@@ -57,8 +52,8 @@ class normfactor_builder:
 class normfactor_combined:
     def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
         self.batch_size = batch_size
-        self.name = normfactor.name
-        self.op_code = normfactor.op_code
+        self.name = 'normfactor'
+        self.op_code = 'multiplication'
 
         keys = [f'{mtype}/{m}' for m, mtype in modifiers]
         normfactor_mods = [m for m, _ in modifiers]

@@ -6,20 +6,15 @@ from ..parameters import unconstrained, ParamViewer
 
 log = logging.getLogger(__name__)
 
-
-@modifier(name='shapefactor', op_code='multiplication')
-class shapefactor:
-    @classmethod
-    def required_parset(cls, sample_data, modifier_data):
-        return {
-            'paramset_type': unconstrained,
-            'n_parameters': len(sample_data),
-            'is_constrained': cls.is_constrained,
-            'is_shared': True,
-            'inits': (1.0,) * len(sample_data),
-            'bounds': ((0.0, 10.0),) * len(sample_data),
-            'fixed': False,
-        }
+def required_parset(sample_data, modifier_data):
+    return {
+        'paramset_type': unconstrained,
+        'n_parameters': len(sample_data),
+        'is_shared': True,
+        'inits': (1.0,) * len(sample_data),
+        'bounds': ((0.0, 10.0),) * len(sample_data),
+        'fixed': False,
+    }
 
 class shapesys_builder:
     def __init__(self, config):
@@ -48,7 +43,7 @@ class shapesys_builder:
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                shapesys.required_parset(
+                required_parset(
                     defined_samp['data'], thismod['data']
                 )
             )
@@ -127,8 +122,9 @@ class shapefactor_combined:
 
         and at that point can be used to compute the effect of shapefactor.
         """
-        self.name = shapefactor.name
-        self.op_code = shapefactor.op_code
+        self.name = 'shapefactor'
+        self.op_code = 'multiplication'
+
         self.batch_size = batch_size
         keys = [f'{mtype}/{m}' for m, mtype in modifiers]
         shapefactor_mods = [m for m, _ in modifiers]

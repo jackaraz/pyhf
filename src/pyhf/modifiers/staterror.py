@@ -7,20 +7,16 @@ from ..parameters import constrained_by_normal, ParamViewer
 log = logging.getLogger(__name__)
 
 
-@modifier(name='staterror', constrained=True, op_code='multiplication')
-class staterror:
-    @classmethod
-    def required_parset(cls, sample_data, modifier_data):
-        return {
-            'paramset_type': constrained_by_normal,
-            'n_parameters': len(sample_data),
-            'is_constrained': cls.is_constrained,
-            'is_shared': True,
-            'inits': (1.0,) * len(sample_data),
-            'bounds': ((1e-10, 10.0),) * len(sample_data),
-            'fixed': False,
-            'auxdata': (1.0,) * len(sample_data),
-        }
+def required_parset(sample_data, modifier_data):
+    return {
+        'paramset_type': constrained_by_normal,
+        'n_parameters': len(sample_data),
+        'is_shared': True,
+        'inits': (1.0,) * len(sample_data),
+        'bounds': ((1e-10, 10.0),) * len(sample_data),
+        'fixed': False,
+        'auxdata': (1.0,) * len(sample_data),
+    }
 
 
 class staterr_builder:
@@ -50,7 +46,7 @@ class staterr_builder:
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                staterror.required_parset(
+                required_parset(
                     defined_samp['data'], thismod['data']
                 )
             )
@@ -60,8 +56,9 @@ class staterr_builder:
 
 class staterror_combined:
     def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
-        self.name = staterror.name
-        self.op_code = staterror.op_code
+        self.name = 'staterror'
+        self.op_code = 'multiplication'
+        
         self.batch_size = batch_size
 
         keys = [f'{mtype}/{m}' for m, mtype in modifiers]

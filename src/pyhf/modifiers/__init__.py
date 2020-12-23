@@ -36,7 +36,7 @@ def add_to_registry(
     if cls_name in registry:
         raise KeyError(f'The modifier name "{cls_name:s}" is already taken.')
     # validate the structure
-    validate_modifier_structure(cls)
+    # validate_modifier_structure(cls)
     # set is_constrained
     cls.is_constrained = constrained
     if constrained:
