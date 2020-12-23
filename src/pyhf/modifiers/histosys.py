@@ -23,6 +23,43 @@ class histosys:
             'auxdata': (0.0,),
         }
 
+class histosys_builder:
+    def __init__(self, config):
+        self._mega_mods = {}
+        self.config = config
+        self.required_parsets = {}
+
+    def collect(self, thismod, nom):
+        lo_data = thismod['data']['lo_data'] if thismod else nom
+        hi_data = thismod['data']['hi_data'] if thismod else nom
+        maskval = True if thismod else False
+        mask = [maskval] * len(nom)
+        return {'lo_data': lo_data, 'hi_data': hi_data, 'mask': mask, 'nom_data': nom}
+
+    def append(self, key, channel, sample, thismod, defined_samp):
+        self._mega_mods.setdefault(key, {}).setdefault(sample, {}).setdefault(
+            'data', {'hi_data': [], 'lo_data': [], 'nom_data': [], 'mask': []}
+        )
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[channel]
+        )
+        moddata = self.collect(thismod, nom)
+        self._mega_mods[key][sample]['data']['lo_data'] += moddata['lo_data']
+        self._mega_mods[key][sample]['data']['hi_data'] += moddata['hi_data']
+        self._mega_mods[key][sample]['data']['nom_data'] += moddata['nom_data']
+        self._mega_mods[key][sample]['data']['mask'] += moddata['mask']
+
+        if thismod:
+            self.required_parsets.setdefault(thismod['name'], []).append(
+                histosys.required_parset(
+                    defined_samp['data'], thismod['data']
+                )
+            )
+
+    def finalize(self):
+        return self._mega_mods
 
 class histosys_combined:
     def __init__(

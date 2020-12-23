@@ -23,6 +23,41 @@ class staterror:
         }
 
 
+class staterr_builder:
+    def __init__(self, config):
+        self._mega_mods = {}
+        self.config = config
+        self.required_parsets = {}
+
+    def collect(self, thismod, nom):
+        uncrt = thismod['data'] if thismod else [0.0] * len(nom)
+        mask = [True if thismod else False] * len(nom)
+        return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
+
+    def append(self, key, channel, sample, thismod, defined_samp):
+        self._mega_mods.setdefault(key, {}).setdefault(sample, {}).setdefault(
+            'data', {'uncrt': [], 'nom_data': [], 'mask': []}
+        )
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[channel]
+        )
+        moddata = self.collect(thismod, nom)
+        self._mega_mods[key][sample]['data']['mask'] += moddata['mask']
+        self._mega_mods[key][sample]['data']['uncrt'] += moddata['uncrt']
+        self._mega_mods[key][sample]['data']['nom_data'] += moddata['nom_data']
+
+        if thismod:
+            self.required_parsets.setdefault(thismod['name'], []).append(
+                staterror.required_parset(
+                    defined_samp['data'], thismod['data']
+                )
+            )
+
+    def finalize(self):
+        return self._mega_mods
+
 class staterror_combined:
     def __init__(self, modifiers, pdfconfig, mega_mods, batch_size=None):
         self.name = staterror.name

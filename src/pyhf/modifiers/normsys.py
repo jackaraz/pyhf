@@ -23,6 +23,45 @@ class normsys:
             'auxdata': (0.0,),
         }
 
+class normsys_builder:
+    def __init__(self, config):
+        self._mega_mods = {}
+        self.config = config
+        self.required_parsets = {}
+
+    def collect(self, thismod, nom):
+        maskval = True if thismod else False
+        lo_factor = thismod['data']['lo'] if thismod else 1.0
+        hi_factor = thismod['data']['hi'] if thismod else 1.0
+        nom_data = [1.0] * len(nom)
+        lo = [lo_factor] * len(nom)  # broadcasting
+        hi = [hi_factor] * len(nom)
+        mask = [maskval] * len(nom)
+        return {'lo': lo, 'hi': hi, 'mask': mask, 'nom_data': nom_data}
+
+    def append(self, key, channel, sample, thismod, defined_samp):
+        self._mega_mods.setdefault(key, {}).setdefault(sample, {}).setdefault(
+            'data', {'hi': [], 'lo': [], 'nom_data': [], 'mask': []}
+        )
+
+        nom = (
+            defined_samp['data']
+            if defined_samp
+            else [0.0] * self.config.channel_nbins[channel]
+        )
+        moddata = self.collect(thismod, nom)
+        self._mega_mods[key][sample]['data']['nom_data'] += moddata['nom_data']
+        self._mega_mods[key][sample]['data']['lo'] += moddata['lo']
+        self._mega_mods[key][sample]['data']['hi'] += moddata['hi']
+        self._mega_mods[key][sample]['data']['mask'] += moddata['mask']
+
+        if thismod:
+            self.required_parsets.setdefault(thismod['name'], []).append(
+                normsys.required_parset(defined_samp['data'], thismod['data'])
+            )
+
+    def finalize(self):
+        return self._mega_mods
 
 class normsys_combined:
     def __init__(
