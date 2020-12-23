@@ -384,6 +384,7 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
         'shapesys': shapesys_builder(config),
         'staterror': staterr_builder(config),
     }
+    custom_builders = {k: c[0](config) for k,c in custom_modifiers.items()}
 
     nominal = nominal_builder(config)
 
@@ -404,8 +405,6 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
 
     _parset_reqs = {}
 
-    custom_builders = {k: c[0](config) for k,c in custom_modifiers.items()}
-    custom_appliers = {k: c[1] for k,c in custom_modifiers.items()}
 
     for v in list(modifiers_builders.values()) + list(custom_builders.values()):
         for pname, req_list in v.required_parsets.items():
@@ -422,17 +421,17 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
 
     config.set_parameters(_required_paramsets)
 
-    standard_modifiers = {
-        k: c(
+    standard_modifiers = {}
+    for k, c in modifiers.combined.items():
+        standard_modifiers[k] =  c(
             modifiers = [x for x in config.modifiers if x[1] == k],  # filter modifier names for that mtype (x[1])
             pdfconfig = config,
             mega_mods = modifiers_builders[k].finalize() if k in modifiers_builders else None,
             batch_size=batch_size,
             **config.modifier_settings.get(k, {}),
         )
-        for k, c in modifiers.combined.items()
-    }
-
+        
+    custom_appliers = {k: c[1] for k,c in custom_modifiers.items()}
     for k,c in custom_appliers.items():
         standard_modifiers[k] = c(
             pdfconfig = config
@@ -766,7 +765,7 @@ class Model:
             model (:class:`~pyhf.pdf.Model`): The Model instance.
 
         """
-        custom_modifiers = custom_modifiers or []
+        custom_modifiers = custom_modifiers or {}
         self.batch_size = batch_size
         self.spec = copy.deepcopy(spec)  # may get modified by config
         self.schema = config_kwargs.pop('schema', 'model.json')
