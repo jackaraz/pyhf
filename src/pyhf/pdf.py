@@ -13,6 +13,7 @@ from .constraints import gaussian_constraint_combined, poisson_constraint_combin
 from .parameters import reduce_paramsets_requirements, ParamViewer
 from .tensor.common import _TensorViewer, _tensorviewer_from_sizes
 from .mixins import _ChannelSummaryMixin
+from .modifiers import pyhfset
 
 log = logging.getLogger(__name__)
 
@@ -69,13 +70,6 @@ class nominal_builder:
         return _nominal_rates
 
 
-from .modifiers.lumi import lumi_builder
-from .modifiers.normfactor import normfactor_builder
-from .modifiers.shapefactor import shapefactor_builder
-from .modifiers.shapesys import shapesys_builder
-from .modifiers.staterror import staterr_builder
-from .modifiers.histosys import histosys_builder
-from .modifiers.normsys import normsys_builder
 
 
 
@@ -91,7 +85,8 @@ from .modifiers.normsys import normsys_builder
 
 
 
-def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size):
+
+def _nominal_and_modifiers_from_spec(modifier_set, config, spec, batch_size):
     # the mega-channel will consist of mega-samples that subscribe to
     # mega-modifiers. i.e. while in normal histfactory, each sample might
     # be affected by some modifiers and some not, here we change it so that
@@ -110,22 +105,12 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
             moddict = {f"{x['type']}/{x['name']}": x for x in s['modifiers']}
             helper.setdefault(c['name'], {})[s['name']] = (s, moddict)
 
-    builders = {
-        'histosys': histosys_builder,
-        'normsys': normsys_builder,
-        'normfactor': normfactor_builder,
-        'shapefactor': shapefactor_builder,
-        'lumi': lumi_builder,
-        'shapesys': shapesys_builder,
-        'staterror': staterr_builder,
-    }
+
+
 
     modifiers_builders = {}
-    for k,c in builders.items():
-        modifiers_builders[k] = c(config)
-
-    for k, c in custom_modifiers.items():
-        modifiers_builders[k] = c[0](config)
+    for k, (builder, applier) in modifier_set.items():
+        modifiers_builders[k] = builder(config)
 
     nominal = nominal_builder(config)
 
@@ -161,12 +146,11 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
 
     config.set_parameters(_required_paramsets)
 
-    custom_appliers = {k: c[1] for k, c in custom_modifiers.items()}
 
     the_modifiers = {}
 
-    for k, c in list(modifiers.combined.items()) + list(custom_appliers.items()):
-        the_modifiers[k] = c(
+    for k, (builder, applier) in modifier_set.items():
+        the_modifiers[k] = applier(
             modifiers=[
                 x for x in config.modifiers if x[1] == k
             ],  # filter modifier names for that mtype (x[1])
@@ -493,7 +477,7 @@ class _MainModel:
 class Model:
     """The main pyhf model class."""
 
-    def __init__(self, spec, custom_modifiers=None, batch_size=None, **config_kwargs):
+    def __init__(self, spec, modifier_set=None, batch_size=None, **config_kwargs):
         """
         Construct a HistFactory Model.
 
@@ -506,7 +490,8 @@ class Model:
             model (:class:`~pyhf.pdf.Model`): The Model instance.
 
         """
-        custom_modifiers = custom_modifiers or {}
+        modifier_set = modifier_set or pyhfset
+
         self.batch_size = batch_size
         self.spec = copy.deepcopy(spec)  # may get modified by config
         self.schema = config_kwargs.pop('schema', 'model.json')
@@ -518,7 +503,7 @@ class Model:
         self.config = _ModelConfig(self.spec, **config_kwargs)
 
         modifiers, _nominal_rates = _nominal_and_modifiers_from_spec(
-            custom_modifiers, self.config, self.spec, self.batch_size
+            modifier_set, self.config, self.spec, self.batch_size
         )
 
         poi_name = config_kwargs.pop('poi_name', 'mu')

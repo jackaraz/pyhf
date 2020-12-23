@@ -174,7 +174,7 @@ def inspect(workspace, output_file, measurement):
     '--modifier-type',
     default=[],
     multiple=True,
-    type=click.Choice(modifiers.combined.keys()),
+    type=click.Choice(modifiers.pyhfset.keys()),
 )
 @click.option('--measurement', default=[], multiple=True, metavar='<MEASUREMENT>...')
 def prune(
