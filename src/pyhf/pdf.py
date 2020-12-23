@@ -113,7 +113,6 @@ class nominal_helper:
         )
         return _nominal_rates
 
-
 class lumi_helper:
     def __init__(self, config):
         self._mega_mods = {}
@@ -175,7 +174,6 @@ class normfactor_helper:
 
     def finalize(self):
         return self._mega_mods
-
 
 class shapefactor_helper:
     def __init__(self, config):
@@ -244,7 +242,6 @@ class shapesys_helper:
     def finalize(self):
         return self._mega_mods
 
-
 class staterr_helper:
     def __init__(self, config):
         self._mega_mods = {}
@@ -279,7 +276,6 @@ class staterr_helper:
 
     def finalize(self):
         return self._mega_mods
-
 
 class histosys_helper:
     def __init__(self, config):
@@ -318,7 +314,6 @@ class histosys_helper:
     
     def finalize(self):
         return self._mega_mods
-
 
 class normsys_helper:
     def __init__(self, config):
@@ -407,8 +402,6 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
 
     nominal_rates = nominal.apply()
 
-    mega_mods = {k: v.finalize() for k, v in modifiers_builders.items()}
-
     _parset_reqs = {}
     for v in list(modifiers_builders.values()) + custom_modifiers:
         for pname, req_list in v.required_parsets.items():
@@ -429,7 +422,7 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
         k: c(
             [x for x in config.modifiers if x[1] == k],  # x[1] is mtype
             config,
-            mega_mods.get(k),
+            modifiers_builders[k].finalize() if k in modifiers_builders else None,
             batch_size=batch_size,
             **config.modifier_settings.get(k, {}),
         )
