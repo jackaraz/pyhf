@@ -55,7 +55,7 @@ class lumi_builder:
         return self._mega_mods
 
 class lumi_combined:
-    def __init__(self, modifiers, pdfconfig, mega_mods, batch_size=None):
+    def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
         self.batch_size = batch_size
         self.name = lumi.name
         self.op_code = lumi.op_code
@@ -71,7 +71,7 @@ class lumi_combined:
         self.param_viewer = ParamViewer(parfield_shape, pdfconfig.par_map, lumi_mods)
 
         self._lumi_mask = [
-            [[mega_mods[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
         ]
         self._precompute()
         events.subscribe('tensorlib_changed')(self._precompute)

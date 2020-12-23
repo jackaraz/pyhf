@@ -89,7 +89,7 @@ class shapefactor_builder:
         return self._mega_mods
 
 class shapefactor_combined:
-    def __init__(self, modifiers, pdfconfig, mega_mods, batch_size=None):
+    def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
         """
         Imagine a situation where we have 2 channels (SR, CR), 3 samples (sig1,
         bkg1, bkg2), and 2 shapefactor modifiers (coupled_shapefactor,
@@ -139,7 +139,7 @@ class shapefactor_combined:
         )
 
         self._shapefactor_mask = [
-            [[mega_mods[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
         ]
 
         global_concatenated_bin_indices = [

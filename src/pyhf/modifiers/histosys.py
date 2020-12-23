@@ -63,7 +63,7 @@ class histosys_builder:
 
 class histosys_combined:
     def __init__(
-        self, modifiers, pdfconfig, mega_mods, interpcode='code0', batch_size=None
+        self, modifiers, pdfconfig, builder_data, interpcode='code0', batch_size=None
     ):
         self.name = histosys.name
         self.op_code = histosys.op_code
@@ -86,16 +86,16 @@ class histosys_combined:
         self._histosys_histoset = [
             [
                 [
-                    mega_mods[m][s]['data']['lo_data'],
-                    mega_mods[m][s]['data']['nom_data'],
-                    mega_mods[m][s]['data']['hi_data'],
+                    builder_data[m][s]['data']['lo_data'],
+                    builder_data[m][s]['data']['nom_data'],
+                    builder_data[m][s]['data']['hi_data'],
                 ]
                 for s in pdfconfig.samples
             ]
             for m in keys
         ]
         self._histosys_mask = [
-            [[mega_mods[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
         ]
 
         if histosys_mods:

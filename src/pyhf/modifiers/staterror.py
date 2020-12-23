@@ -59,7 +59,7 @@ class staterr_builder:
         return self._mega_mods
 
 class staterror_combined:
-    def __init__(self, modifiers, pdfconfig, mega_mods, batch_size=None):
+    def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
         self.name = staterror.name
         self.op_code = staterror.op_code
         self.batch_size = batch_size
@@ -73,14 +73,14 @@ class staterror_combined:
         )
 
         self._staterror_mask = [
-            [[mega_mods[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
         ]
         self.__staterror_uncrt = default_backend.astensor(
             [
                 [
                     [
-                        mega_mods[m][s]['data']['uncrt'],
-                        mega_mods[m][s]['data']['nom_data'],
+                        builder_data[m][s]['data']['uncrt'],
+                        builder_data[m][s]['data']['nom_data'],
                     ]
                     for s in pdfconfig.samples
                 ]

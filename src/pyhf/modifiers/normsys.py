@@ -65,7 +65,7 @@ class normsys_builder:
 
 class normsys_combined:
     def __init__(
-        self, modifiers, pdfconfig, mega_mods, interpcode='code1', batch_size=None
+        self, modifiers, pdfconfig, builder_data, interpcode='code1', batch_size=None
     ):
         self.name = normsys.name
         self.op_code = normsys.op_code
@@ -86,16 +86,16 @@ class normsys_combined:
         self._normsys_histoset = [
             [
                 [
-                    mega_mods[m][s]['data']['lo'],
-                    mega_mods[m][s]['data']['nom_data'],
-                    mega_mods[m][s]['data']['hi'],
+                    builder_data[m][s]['data']['lo'],
+                    builder_data[m][s]['data']['nom_data'],
+                    builder_data[m][s]['data']['hi'],
                 ]
                 for s in pdfconfig.samples
             ]
             for m in keys
         ]
         self._normsys_mask = [
-            [[mega_mods[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
         ]
 
         if normsys_mods:

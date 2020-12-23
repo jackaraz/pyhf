@@ -155,7 +155,7 @@ def _nominal_and_modifiers_from_spec(modifier_set, config, spec, batch_size):
                 x for x in config.modifiers if x[1] == k
             ],  # filter modifier names for that mtype (x[1])
             pdfconfig=config,
-            mega_mods=modifiers_builders[k].finalize()
+            builder_data=modifiers_builders[k].finalize()
             if k in modifiers_builders
             else None,
             batch_size=batch_size,

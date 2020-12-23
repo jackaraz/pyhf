@@ -55,7 +55,7 @@ class normfactor_builder:
         return self._mega_mods
         
 class normfactor_combined:
-    def __init__(self, modifiers, pdfconfig, mega_mods, batch_size=None):
+    def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
         self.batch_size = batch_size
         self.name = normfactor.name
         self.op_code = normfactor.op_code
@@ -73,7 +73,7 @@ class normfactor_combined:
         )
 
         self._normfactor_mask = [
-            [[mega_mods[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
         ]
         self._precompute()
         events.subscribe('tensorlib_changed')(self._precompute)

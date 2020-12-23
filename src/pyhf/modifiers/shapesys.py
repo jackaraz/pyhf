@@ -70,7 +70,7 @@ class shapesys_builder:
         return self._mega_mods
 
 class shapesys_combined:
-    def __init__(self, modifiers, pdfconfig, mega_mods, batch_size=None):
+    def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
         self.name = shapesys.name
         self.op_code = shapesys.op_code
         self.batch_size = batch_size
@@ -84,15 +84,15 @@ class shapesys_combined:
         )
 
         self._shapesys_mask = [
-            [[mega_mods[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
         ]
         self.__shapesys_info = default_backend.astensor(
             [
                 [
                     [
-                        mega_mods[m][s]['data']['mask'],
-                        mega_mods[m][s]['data']['nom_data'],
-                        mega_mods[m][s]['data']['uncrt'],
+                        builder_data[m][s]['data']['mask'],
+                        builder_data[m][s]['data']['nom_data'],
+                        builder_data[m][s]['data']['uncrt'],
                     ]
                     for s in pdfconfig.samples
                 ]
