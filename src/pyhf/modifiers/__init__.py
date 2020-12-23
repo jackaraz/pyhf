@@ -182,24 +182,3 @@ pyhfset = {
     'shapesys': (shapesys_builder, shapesys_combined),
     'staterror': (staterr_builder, staterror_combined),
 }
-
-
-
-
-__all__ = [
-    'histosys',
-    'histosys_combined',
-    'lumi',
-    'lumi_combined',
-    'normfactor',
-    'normfactor_combined',
-    'normsys',
-    'normsys_combined',
-    'shapefactor',
-    'shapefactor_combined',
-    'shapesys',
-    'shapesys_combined',
-    'staterror',
-    'staterror_combined',
-    'combined',
-]
