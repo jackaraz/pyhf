@@ -84,7 +84,7 @@ def _finalize_parameters(user_parameters, _paramsets_requirements, channel_nbins
     return _sets
 
 
-class nominal_helper:
+class nominal_builder:
     def __init__(self, config):
         self.mega_samples = {}
         self.config = config
@@ -113,7 +113,7 @@ class nominal_helper:
         )
         return _nominal_rates
 
-class lumi_helper:
+class lumi_builder:
     def __init__(self, config):
         self._mega_mods = {}
         self.config = config
@@ -143,7 +143,7 @@ class lumi_helper:
     def finalize(self):
         return self._mega_mods
 
-class normfactor_helper:
+class normfactor_builder:
     def __init__(self, config):
         self._mega_mods = {}
         self.config = config
@@ -175,7 +175,7 @@ class normfactor_helper:
     def finalize(self):
         return self._mega_mods
 
-class shapefactor_helper:
+class shapefactor_builder:
     def __init__(self, config):
         self._mega_mods = {}
         self.config = config
@@ -207,7 +207,7 @@ class shapefactor_helper:
     def finalize(self):
         return self._mega_mods
 
-class shapesys_helper:
+class shapesys_builder:
     def __init__(self, config):
         self._mega_mods = {}
         self.config = config
@@ -242,7 +242,7 @@ class shapesys_helper:
     def finalize(self):
         return self._mega_mods
 
-class staterr_helper:
+class staterr_builder:
     def __init__(self, config):
         self._mega_mods = {}
         self.config = config
@@ -277,7 +277,7 @@ class staterr_helper:
     def finalize(self):
         return self._mega_mods
 
-class histosys_helper:
+class histosys_builder:
     def __init__(self, config):
         self._mega_mods = {}
         self.config = config
@@ -315,7 +315,7 @@ class histosys_helper:
     def finalize(self):
         return self._mega_mods
 
-class normsys_helper:
+class normsys_builder:
     def __init__(self, config):
         self._mega_mods = {}
         self.config = config
@@ -376,16 +376,16 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
             helper.setdefault(c['name'], {})[s['name']] = (s, moddict)
 
     modifiers_builders = {
-        'histosys': histosys_helper(config),
-        'normsys': normsys_helper(config),
-        'normfactor': normfactor_helper(config),
-        'shapefactor': shapefactor_helper(config),
-        'lumi': lumi_helper(config),
-        'shapesys': shapesys_helper(config),
-        'staterror': staterr_helper(config),
+        'histosys': histosys_builder(config),
+        'normsys': normsys_builder(config),
+        'normfactor': normfactor_builder(config),
+        'shapefactor': shapefactor_builder(config),
+        'lumi': lumi_builder(config),
+        'shapesys': shapesys_builder(config),
+        'staterror': staterr_builder(config),
     }
 
-    nominal = nominal_helper(config)
+    nominal = nominal_builder(config)
 
     for c in config.channels:
         for s in config.samples:
@@ -403,7 +403,11 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
     nominal_rates = nominal.apply()
 
     _parset_reqs = {}
-    for v in list(modifiers_builders.values()) + custom_modifiers:
+
+    custom_builders = [c[0] for c in custom_modifiers]
+    custom_appliers = [c[1] for c in custom_modifiers]
+
+    for v in list(modifiers_builders.values()) + custom_builders:
         for pname, req_list in v.required_parsets.items():
             _parset_reqs.setdefault(pname, [])
             _parset_reqs[pname] += req_list
@@ -429,9 +433,10 @@ def _nominal_and_modifiers_from_spec(custom_modifiers, config, spec, batch_size)
         for k, c in modifiers.combined.items()
     }
 
-    for custom in custom_modifiers:
-        custom.config = config
-        standard_modifiers[custom.name] = custom
+    for custom in custom_appliers:
+        standard_modifiers[custom.name] = custom(
+            pdfconfig = config
+        )
 
     return standard_modifiers, nominal_rates
 
