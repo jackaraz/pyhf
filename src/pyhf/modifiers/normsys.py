@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 class normsys:
     pass
 
+
 def required_parset(sample_data, modifier_data):
     return {
         'paramset_type': constrained_by_normal,
@@ -22,6 +23,7 @@ def required_parset(sample_data, modifier_data):
         'fixed': False,
         'auxdata': (0.0,),
     }
+
 
 class normsys_builder:
     def __init__(self, config):
@@ -63,13 +65,14 @@ class normsys_builder:
     def finalize(self):
         return self._mega_mods
 
+
 class normsys_combined:
     def __init__(
         self, modifiers, pdfconfig, builder_data, interpcode='code1', batch_size=None
     ):
         self.name = 'normsys'
         self.op_code = 'multiplication'
-        
+
         self.interpcode = interpcode
         assert self.interpcode in ['code1', 'code4']
 
@@ -96,7 +99,8 @@ class normsys_combined:
             for m in keys
         ]
         self._normsys_mask = [
-            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples]
+            for m in keys
         ]
 
         if normsys_mods:

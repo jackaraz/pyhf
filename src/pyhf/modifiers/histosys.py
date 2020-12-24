@@ -7,6 +7,7 @@ from ..parameters import constrained_by_normal, ParamViewer
 
 log = logging.getLogger(__name__)
 
+
 def required_parset(sample_data, modifier_data):
     return {
         'paramset_type': constrained_by_normal,
@@ -17,6 +18,7 @@ def required_parset(sample_data, modifier_data):
         'fixed': False,
         'auxdata': (0.0,),
     }
+
 
 class histosys_builder:
     def __init__(self, config):
@@ -48,13 +50,12 @@ class histosys_builder:
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                required_parset(
-                    defined_samp['data'], thismod['data']
-                )
+                required_parset(defined_samp['data'], thismod['data'])
             )
 
     def finalize(self):
         return self._mega_mods
+
 
 class histosys_combined:
     def __init__(
@@ -90,7 +91,8 @@ class histosys_combined:
             for m in keys
         ]
         self._histosys_mask = [
-            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples]
+            for m in keys
         ]
 
         if histosys_mods:

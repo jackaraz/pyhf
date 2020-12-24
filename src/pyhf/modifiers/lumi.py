@@ -6,6 +6,7 @@ from ..parameters import constrained_by_normal, ParamViewer
 
 log = logging.getLogger(__name__)
 
+
 def required_parset(sample_data, modifier_data):
     return {
         'paramset_type': constrained_by_normal,
@@ -17,6 +18,7 @@ def required_parset(sample_data, modifier_data):
         'auxdata': None,  # lumi
         'sigmas': None,  # lumi * lumirelerror
     }
+
 
 class lumi_builder:
     def __init__(self, config):
@@ -48,6 +50,7 @@ class lumi_builder:
     def finalize(self):
         return self._mega_mods
 
+
 class lumi_combined:
     def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
         self.batch_size = batch_size
@@ -65,7 +68,8 @@ class lumi_combined:
         self.param_viewer = ParamViewer(parfield_shape, pdfconfig.par_map, lumi_mods)
 
         self._lumi_mask = [
-            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples]
+            for m in keys
         ]
         self._precompute()
         events.subscribe('tensorlib_changed')(self._precompute)

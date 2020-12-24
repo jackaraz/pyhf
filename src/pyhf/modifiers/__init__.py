@@ -174,7 +174,7 @@ from .shapesys import shapesys_builder, shapesys_combined
 from .staterror import staterr_builder, staterror_combined
 
 pyhfset = {
-    'histosys': (histosys_builder,histosys_combined),
+    'histosys': (histosys_builder, histosys_combined),
     'lumi': (lumi_builder, lumi_combined),
     'normfactor': (normfactor_builder, normfactor_combined),
     'normsys': (normsys_builder, normsys_combined),

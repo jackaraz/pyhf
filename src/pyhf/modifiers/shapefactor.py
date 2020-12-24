@@ -6,6 +6,7 @@ from ..parameters import unconstrained, ParamViewer
 
 log = logging.getLogger(__name__)
 
+
 def required_parset(sample_data, modifier_data):
     return {
         'paramset_type': unconstrained,
@@ -15,6 +16,7 @@ def required_parset(sample_data, modifier_data):
         'bounds': ((0.0, 10.0),) * len(sample_data),
         'fixed': False,
     }
+
 
 class shapesys_builder:
     def __init__(self, config):
@@ -43,13 +45,12 @@ class shapesys_builder:
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                required_parset(
-                    defined_samp['data'], thismod['data']
-                )
+                required_parset(defined_samp['data'], thismod['data'])
             )
 
     def finalize(self):
         return self._mega_mods
+
 
 class shapefactor_builder:
     def __init__(self, config):
@@ -75,13 +76,12 @@ class shapefactor_builder:
         self._mega_mods[key][sample]['data']['mask'] += moddata['mask']
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                required_parset(
-                    defined_samp['data'], thismod['data']
-                )
+                required_parset(defined_samp['data'], thismod['data'])
             )
 
     def finalize(self):
         return self._mega_mods
+
 
 class shapefactor_combined:
     def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
@@ -135,7 +135,8 @@ class shapefactor_combined:
         )
 
         self._shapefactor_mask = [
-            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples]
+            for m in keys
         ]
 
         global_concatenated_bin_indices = [

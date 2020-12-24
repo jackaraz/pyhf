@@ -72,13 +72,7 @@ def inspect(workspace, output_file, measurement):
     ]
     result['modifiers'] = dict(ws.modifiers)
 
-    result['parameters'] = sorted(
-        (
-            parname,
-            'N/A'
-        )
-        for parname in ws.parameters
-    )
+    result['parameters'] = sorted((parname, 'N/A') for parname in ws.parameters)
     result['systematics'] = [
         (
             parameter[0],

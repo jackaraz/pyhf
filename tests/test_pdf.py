@@ -848,4 +848,8 @@ def test_model_integration_fixed_parameters_shapesys():
     }
     model = pyhf.Model(spec, poi_name='mypoi')
     assert len(model.config.suggested_fixed()) == 5
-    assert model.config.suggested_fixed()[model.config.par_slice('uncorr')] == [True, True, True]
+    assert model.config.suggested_fixed()[model.config.par_slice('uncorr')] == [
+        True,
+        True,
+        True,
+    ]

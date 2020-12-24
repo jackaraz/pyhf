@@ -6,6 +6,7 @@ from ..parameters import constrained_by_poisson, ParamViewer
 
 log = logging.getLogger(__name__)
 
+
 def required_parset(sample_data, modifier_data):
     # count the number of bins with nonzero, positive yields
     valid_bins = [
@@ -54,13 +55,12 @@ class shapesys_builder:
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                required_parset(
-                    defined_samp['data'], thismod['data']
-                )
+                required_parset(defined_samp['data'], thismod['data'])
             )
 
     def finalize(self):
         return self._mega_mods
+
 
 class shapesys_combined:
     def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
@@ -77,7 +77,8 @@ class shapesys_combined:
         )
 
         self._shapesys_mask = [
-            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples]
+            for m in keys
         ]
         self.__shapesys_info = default_backend.astensor(
             [

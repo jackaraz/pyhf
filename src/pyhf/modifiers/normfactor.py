@@ -6,6 +6,7 @@ from ..parameters import unconstrained, ParamViewer
 
 log = logging.getLogger(__name__)
 
+
 def required_parset(sample_data, modifier_data):
     return {
         'paramset_type': unconstrained,
@@ -41,14 +42,13 @@ class normfactor_builder:
         self._mega_mods[key][sample]['data']['mask'] += moddata['mask']
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                required_parset(
-                    defined_samp['data'], thismod['data']
-                )
+                required_parset(defined_samp['data'], thismod['data'])
             )
 
     def finalize(self):
         return self._mega_mods
-        
+
+
 class normfactor_combined:
     def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
         self.batch_size = batch_size
@@ -68,7 +68,8 @@ class normfactor_combined:
         )
 
         self._normfactor_mask = [
-            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples]
+            for m in keys
         ]
         self._precompute()
         events.subscribe('tensorlib_changed')(self._precompute)

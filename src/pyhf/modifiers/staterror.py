@@ -46,19 +46,18 @@ class staterr_builder:
 
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                required_parset(
-                    defined_samp['data'], thismod['data']
-                )
+                required_parset(defined_samp['data'], thismod['data'])
             )
 
     def finalize(self):
         return self._mega_mods
 
+
 class staterror_combined:
     def __init__(self, modifiers, pdfconfig, builder_data, batch_size=None):
         self.name = 'staterror'
         self.op_code = 'multiplication'
-        
+
         self.batch_size = batch_size
 
         keys = [f'{mtype}/{m}' for m, mtype in modifiers]
@@ -70,7 +69,8 @@ class staterror_combined:
         )
 
         self._staterror_mask = [
-            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples] for m in keys
+            [[builder_data[m][s]['data']['mask']] for s in pdfconfig.samples]
+            for m in keys
         ]
         self.__staterror_uncrt = default_backend.astensor(
             [
