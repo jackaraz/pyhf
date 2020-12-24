@@ -75,9 +75,7 @@ def inspect(workspace, output_file, measurement):
     result['parameters'] = sorted(
         (
             parname,
-            modifiers.registry[result['modifiers'][parname]]
-            .required_parset([], [])['paramset_type']
-            .__name__,
+            'N/A'
         )
         for parname in ws.parameters
     )

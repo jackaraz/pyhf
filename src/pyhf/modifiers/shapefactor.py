@@ -63,7 +63,7 @@ class shapefactor_builder:
         return {'mask': mask}
 
     def append(self, key, channel, sample, thismod, defined_samp):
-        self._mega_mods.setdefault(key, {}).setdefault(samle, {}).setdefault(
+        self._mega_mods.setdefault(key, {}).setdefault(sample, {}).setdefault(
             'data', {'mask': []}
         )
         nom = (
@@ -75,7 +75,7 @@ class shapefactor_builder:
         self._mega_mods[key][sample]['data']['mask'] += moddata['mask']
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
-                shapefactor.required_parset(
+                required_parset(
                     defined_samp['data'], thismod['data']
                 )
             )
