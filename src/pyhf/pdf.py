@@ -18,6 +18,7 @@ from .modifiers import pyhfset
 log = logging.getLogger(__name__)
 
 def _finalize_parameters(user_parameters, _paramsets_requirements, channel_nbins):
+    print('finalizing!! LUKAS',user_parameters)
     # build up a dictionary of the parameter configurations provided by the user
     _paramsets_user_configs = {}
     for parameter in user_parameters:
@@ -33,6 +34,7 @@ def _finalize_parameters(user_parameters, _paramsets_requirements, channel_nbins
 
     _sets = {}
     for param_name, paramset_requirements in _reqs.items():
+        print('param_name',param_name,paramset_requirements)
         paramset_type = paramset_requirements.get('paramset_type')
         paramset = paramset_type(**paramset_requirements)
         _sets[param_name] = paramset
@@ -235,6 +237,7 @@ class _ModelConfig(_ChannelSummaryMixin):
         fixed = []
         for name in self.par_order:
             paramset = self.par_map[name]['paramset']
+            print(name,paramset.suggested_fixed,'>??',paramset.n_parameters)
             fixed = fixed + [paramset.suggested_fixed] * paramset.n_parameters
         return fixed
 
