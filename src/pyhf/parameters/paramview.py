@@ -51,6 +51,9 @@ class ParamViewer:
         self._all_indices = default_backend.reshape(flat_indices, shape)
 
         # a tensor viewer that can split and stitch parameters
+
+        print('par_map',par_map,"??")
+
         self.allpar_viewer = _tensorviewer_from_parmap(par_map, batch_size)
 
         # a tensor viewer that can split and stitch the selected parameters
