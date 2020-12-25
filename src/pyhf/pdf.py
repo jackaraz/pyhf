@@ -125,6 +125,8 @@ def _nominal_and_modifiers_from_spec(modifier_set, config, spec, batch_size):
         _parset_reqs,
         config.channel_nbins,
     )
+    if not _required_paramsets:
+        raise exceptions.InvalidModel('No parameters specified for the Model.')
 
     config.set_parameters(_required_paramsets)
 
