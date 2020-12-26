@@ -459,7 +459,9 @@ class _MainModel:
 class Model:
     """The main pyhf model class."""
 
-    def __init__(self, spec, modifier_set=None, batch_size=None, validate=True, **config_kwargs):
+    def __init__(
+        self, spec, modifier_set=None, batch_size=None, validate=True, **config_kwargs
+    ):
         """
         Construct a HistFactory Model.
 

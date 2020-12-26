@@ -108,4 +108,3 @@ class normfactor_combined:
             self.normfactor_mask_bool, results_normfactor, self.normfactor_default
         )
         return results_normfactor
-

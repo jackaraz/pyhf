@@ -213,4 +213,3 @@ class shapefactor_combined:
             self.shapefactor_mask, results_shapefactor, self.shapefactor_default
         )
         return results_shapefactor
-
