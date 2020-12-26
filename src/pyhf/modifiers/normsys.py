@@ -1,16 +1,10 @@
 import logging
 
-from . import modifier
 from .. import get_backend, events
 from .. import interpolators
 from ..parameters import constrained_by_normal, ParamViewer
 
 log = logging.getLogger(__name__)
-
-
-@modifier(name='normsys', constrained=True, op_code='multiplication')
-class normsys:
-    pass
 
 
 def required_parset(sample_data, modifier_data):

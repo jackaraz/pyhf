@@ -1,6 +1,5 @@
 import logging
 
-from . import modifier
 from .. import get_backend, events
 from ..parameters import unconstrained, ParamViewer
 

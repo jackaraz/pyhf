@@ -5,7 +5,6 @@ import logging
 
 from . import get_backend, default_backend
 from . import exceptions
-from . import modifiers
 from . import utils
 from . import events
 from . import probability as prob
