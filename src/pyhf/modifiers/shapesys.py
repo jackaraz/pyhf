@@ -204,3 +204,4 @@ class shapesys_combined:
             self.shapesys_mask, results_shapesys, self.shapesys_default
         )
         return results_shapesys
+

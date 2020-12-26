@@ -99,3 +99,4 @@ class lumi_combined:
             results_lumi = tensorlib.einsum('msab,xa->msab', self.lumi_mask, lumis)
 
         return tensorlib.where(self.lumi_mask_bool, results_lumi, self.lumi_default)
+

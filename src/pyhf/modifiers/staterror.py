@@ -163,3 +163,4 @@ class staterror_combined:
             self.staterror_mask, results_staterr, self.staterror_default
         )
         return results_staterr
+

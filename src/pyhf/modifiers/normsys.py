@@ -139,3 +139,4 @@ class normsys_combined:
             self.normsys_mask, results_norm, self.normsys_default
         )
         return results_norm
+
