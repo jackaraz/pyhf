@@ -113,4 +113,3 @@ def test_decorate_with_wrong_values():
         @modifier(unused='arg')
         class myCustomModifierValueError:
             pass
-
