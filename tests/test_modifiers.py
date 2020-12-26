@@ -14,22 +14,6 @@ modifiers_to_test = [
 modifier_pdf_types = ["normal", None, "normal", None, "poisson", "normal"]
 
 
-# we make sure we can import all of our pre-defined modifiers correctly
-@pytest.mark.parametrize(
-    "test_modifierPair", zip(modifiers_to_test, modifier_pdf_types)
-)
-def test_import_default_modifiers(test_modifierPair):
-    test_modifier, test_mod_type = test_modifierPair
-    modifier = pyhf.modifiers.registry.get(test_modifier, None)
-    assert test_modifier in pyhf.modifiers.registry
-    assert modifier is not None
-    assert callable(modifier)
-    assert hasattr(modifier, 'is_constrained')
-    assert hasattr(modifier, 'pdf_type')
-    assert hasattr(modifier, 'op_code')
-    assert modifier.op_code in ['addition', 'multiplication']
-
-
 # we make sure modifiers have right structure
 def test_modifiers_structure():
     from pyhf.modifiers import modifier
@@ -130,22 +114,3 @@ def test_decorate_with_wrong_values():
         class myCustomModifierValueError:
             pass
 
-
-# we catch name clashes when adding duplicate names for modifiers
-def test_registry_name_clash():
-    from pyhf.modifiers import modifier
-
-    with pytest.raises(KeyError):
-
-        @modifier(name='histosys')
-        class myCustomModifierKeyError:
-            pass
-
-    with pytest.raises(KeyError):
-
-        class myCustomModifier:
-            @classmethod
-            def required_parset(cls, sample_data, modifier_data):
-                pass
-
-        pyhf.modifiers.add_to_registry(myCustomModifier, 'histosys')
