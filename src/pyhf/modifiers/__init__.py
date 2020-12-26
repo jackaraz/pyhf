@@ -1,10 +1,3 @@
-import logging
-
-from .. import exceptions
-from .. import get_backend
-
-log = logging.getLogger(__name__)
-
 from .histosys import histosys_builder, histosys_combined
 from .lumi import lumi_builder, lumi_combined
 from .normfactor import normfactor_builder, normfactor_combined
