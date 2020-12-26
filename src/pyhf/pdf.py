@@ -460,7 +460,7 @@ class _MainModel:
 class Model:
     """The main pyhf model class."""
 
-    def __init__(self, spec, modifier_set=None, batch_size=None, **config_kwargs):
+    def __init__(self, spec, modifier_set=None, batch_size=None, validate=True, **config_kwargs):
         """
         Construct a HistFactory Model.
 
@@ -481,7 +481,8 @@ class Model:
         self.version = config_kwargs.pop('version', None)
         # run jsonschema validation of input specification against the (provided) schema
         log.info(f"Validating spec against schema: {self.schema:s}")
-        utils.validate(self.spec, self.schema, version=self.version)
+        if validate:
+            utils.validate(self.spec, self.schema, version=self.version)
         # build up our representation of the specification
         self.config = _ModelConfig(self.spec, **config_kwargs)
 
