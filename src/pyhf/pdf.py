@@ -40,7 +40,7 @@ def _finalize_parameters(user_parameters, _paramsets_requirements, channel_nbins
     return _sets
 
 
-class nominal_builder:
+class _nominal_builder:
     def __init__(self, config):
         self.mega_samples = {}
         self.config = config
@@ -93,7 +93,7 @@ def _nominal_and_modifiers_from_spec(modifier_set, config, spec, batch_size):
     for k, (builder, applier) in modifier_set.items():
         modifiers_builders[k] = builder(config)
 
-    nominal = nominal_builder(config)
+    nominal = _nominal_builder(config)
 
     for c in config.channels:
         for s in config.samples:
