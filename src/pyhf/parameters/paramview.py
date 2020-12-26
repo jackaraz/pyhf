@@ -52,8 +52,6 @@ class ParamViewer:
 
         # a tensor viewer that can split and stitch parameters
 
-        print('par_map',par_map,"??")
-
         self.allpar_viewer = _tensorviewer_from_parmap(par_map, batch_size)
 
         # a tensor viewer that can split and stitch the selected parameters
