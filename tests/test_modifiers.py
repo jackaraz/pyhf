@@ -1,8 +1,3 @@
-import pytest
-import inspect
-
-import pyhf
-
 modifiers_to_test = [
     "histosys",
     "normfactor",
