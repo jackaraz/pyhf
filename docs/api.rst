@@ -79,23 +79,6 @@ Optimizers
    opt_scipy.scipy_optimizer
    opt_minuit.minuit_optimizer
 
-Modifiers
----------
-
-.. currentmodule:: pyhf.modifiers
-
-.. autosummary::
-   :toctree: _generated/
-   :nosignatures:
-   :template: modifierclass.rst
-
-   histosys
-   normfactor
-   normsys
-   shapefactor
-   shapesys
-   staterror
-
 Interpolators
 -------------
 

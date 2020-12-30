@@ -133,3 +133,4 @@ class histosys_combined:
             self.histosys_mask, results_histo, self.histosys_default
         )
         return results_histo
+
