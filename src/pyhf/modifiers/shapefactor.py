@@ -24,13 +24,13 @@ class shapefactor_builder:
         self.required_parsets = {}
 
     def collect(self, thismod, nom):
-        uncrt = thismod['data'] if thismod else [0.0] * len(nom)
-        mask = [(x > 0 and y > 0) for x, y in zip(uncrt, nom)]
-        return {'mask': mask, 'nom_data': nom, 'uncrt': uncrt}
+        maskval = True if thismod else False
+        mask = [maskval] * len(nom)
+        return {'mask': mask}
 
     def append(self, key, channel, sample, thismod, defined_samp):
         self._mega_mods.setdefault(key, {}).setdefault(sample, {}).setdefault(
-            'data', {'uncrt': [], 'nom_data': [], 'mask': []}
+            'data', {'mask': []}
         )
         nom = (
             defined_samp['data']
@@ -39,9 +39,6 @@ class shapefactor_builder:
         )
         moddata = self.collect(thismod, nom)
         self._mega_mods[key][sample]['data']['mask'] += moddata['mask']
-        self._mega_mods[key][sample]['data']['uncrt'] += moddata['uncrt']
-        self._mega_mods[key][sample]['data']['nom_data'] += moddata['nom_data']
-
         if thismod:
             self.required_parsets.setdefault(thismod['name'], []).append(
                 required_parset(defined_samp['data'], thismod['data'])
