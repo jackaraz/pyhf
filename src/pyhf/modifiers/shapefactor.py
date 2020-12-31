@@ -17,7 +17,7 @@ def required_parset(sample_data, modifier_data):
     }
 
 
-class shapesys_builder:
+class shapefactor_builder:
     def __init__(self, config):
         self._mega_mods = {}
         self.config = config
@@ -51,7 +51,7 @@ class shapesys_builder:
         return self._mega_mods
 
 
-class shapefactor_builder:
+class shapefactor_combined:
     def __init__(self, config):
         self._mega_mods = {}
         self.config = config

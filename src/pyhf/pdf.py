@@ -130,7 +130,6 @@ def _nominal_and_modifiers_from_spec(modifier_set, config, spec, batch_size):
     config.set_parameters(_required_paramsets)
 
     the_modifiers = {}
-
     for k, (builder, applier) in modifier_set.items():
         the_modifiers[k] = applier(
             modifiers=[
