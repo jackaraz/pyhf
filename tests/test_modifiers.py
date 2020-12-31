@@ -36,4 +36,5 @@ def test_shapefactor_build():
     }
 
     model = pyhf.Model(spec)
+    assert model
     
