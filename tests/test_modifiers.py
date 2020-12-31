@@ -1,3 +1,5 @@
+import pyhf
+
 modifiers_to_test = [
     "histosys",
     "normfactor",
@@ -8,7 +10,6 @@ modifiers_to_test = [
 ]
 modifier_pdf_types = ["normal", None, "normal", None, "poisson", "normal"]
 
-import pyhf
 
 def test_shapefactor_build():
     spec = {
@@ -37,4 +38,3 @@ def test_shapefactor_build():
 
     model = pyhf.Model(spec)
     assert model
-    
