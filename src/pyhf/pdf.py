@@ -56,7 +56,7 @@ class _nominal_builder:
             raise exceptions.InvalidModel(f'expected {self.config.channel_nbins[channel]} size sample data but got {len(nom)}')
         self.mega_samples[sample]['nom'] += nom
 
-    def apply(self):
+    def finalize(self):
         nominal_rates = default_backend.astensor(
             [self.mega_samples[sample]['nom'] for sample in self.config.samples]
         )
@@ -113,8 +113,7 @@ def _nominal_and_modifiers_from_spec(modifier_set, config, spec, batch_size):
                 # this is None if modifier doesn't affect channel/sample.
                 thismod = defined_mods.get(key) if defined_mods else None
                 modifiers_builders[mtype].append(key, c, s, thismod, defined_samp)
-
-    nominal_rates = nominal.apply()
+    nominal_rates = nominal.finalize()
 
     _parset_reqs = {}
 
