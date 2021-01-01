@@ -45,18 +45,20 @@ class _nominal_builder:
         self.mega_samples = {}
         self.config = config
 
-    def append(self, c, s, defined_samp):
-        self.mega_samples.setdefault(s, {'name': f'mega_{s}', 'nom': []})
+    def append(self, channel, sample, defined_samp):
+        self.mega_samples.setdefault(sample, {'name': f'mega_{sample}', 'nom': []})
         nom = (
             defined_samp['data']
             if defined_samp
-            else [0.0] * self.config.channel_nbins[c]
+            else [0.0] * self.config.channel_nbins[channel]
         )
-        self.mega_samples[s]['nom'] += nom
+        if not len(nom) == self.config.channel_nbins[channel]:
+            raise exceptions.InvalidModel(f'expected {self.config.channel_nbins[channel]} size sample data but got {len(nom)}')
+        self.mega_samples[sample]['nom'] += nom
 
     def apply(self):
         nominal_rates = default_backend.astensor(
-            [self.mega_samples[s]['nom'] for s in self.config.samples]
+            [self.mega_samples[sample]['nom'] for sample in self.config.samples]
         )
         _nominal_rates = default_backend.reshape(
             nominal_rates,

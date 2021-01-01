@@ -732,20 +732,20 @@ def test_lumi_np_scaling():
     ]
 
 
-# def test_sample_wrong_bins():
-#     spec = {
-#         'channels': [
-#             {
-#                 'name': 'channel',
-#                 'samples': [
-#                     {'name': 'goodsample', 'data': [1.0, 2.0], 'modifiers': []},
-#                     {'name': 'badsample', 'data': [3.0, 4.0, 5.0], 'modifiers': []},
-#                 ],
-#             }
-#         ]
-#     }
-#     with pytest.raises(pyhf.exceptions.InvalidModel):
-#         pyhf.Model(spec)
+def test_sample_wrong_bins():
+    spec = {
+        'channels': [
+            {
+                'name': 'channel',
+                'samples': [
+                    {'name': 'goodsample', 'data': [1.0, 2.0], 'modifiers': []},
+                    {'name': 'badsample', 'data': [3.0, 4.0, 5.0], 'modifiers': []},
+                ],
+            }
+        ]
+    }
+    with pytest.raises(pyhf.exceptions.InvalidModel):
+        pyhf.Model(spec)
 
 
 # @pytest.mark.parametrize(
