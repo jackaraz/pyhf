@@ -535,29 +535,29 @@ def test_pdf_integration_shapesys(backend):
     ]
 
 
-# def test_invalid_modifier():
-#     spec = {
-#         'channels': [
-#             {
-#                 'name': 'channel',
-#                 'samples': [
-#                     {
-#                         'name': 'ttbar',
-#                         'data': [1],
-#                         'modifiers': [
-#                             {
-#                                 'name': 'a_name',
-#                                 'type': 'this_should_not_exist',
-#                                 'data': [1],
-#                             }
-#                         ],
-#                     }
-#                 ],
-#             }
-#         ]
-#     }
-#     with pytest.raises(pyhf.exceptions.InvalidModifier):
-#         pyhf.pdf._ModelConfig(spec)
+def test_invalid_modifier():
+    spec = {
+        'channels': [
+            {
+                'name': 'channel',
+                'samples': [
+                    {
+                        'name': 'ttbar',
+                        'data': [1],
+                        'modifiers': [
+                            {
+                                'name': 'a_name',
+                                'type': 'this_should_not_exist',
+                                'data': [1],
+                            }
+                        ],
+                    }
+                ],
+            }
+        ]
+    }
+    with pytest.raises(pyhf.exceptions.InvalidModifier):
+        pyhf.pdf.Model(spec,validate=False) #don't validate to delay exception
 
 
 def test_invalid_modifier_name_resuse():

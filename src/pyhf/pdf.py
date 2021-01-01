@@ -88,7 +88,10 @@ def _nominal_and_modifiers_from_spec(modifier_set, config, spec, batch_size):
     helper = {}
     for c in spec['channels']:
         for s in c['samples']:
-            moddict = {f"{x['type']}/{x['name']}": x for x in s['modifiers']}
+            for x in s['modifiers']:
+                if x['type'] not in modifier_set:
+                    raise exceptions.InvalidModifier
+                moddict[f"{x['type']}/{x['name']}"] = x
             helper.setdefault(c['name'], {})[s['name']] = (s, moddict)
 
     modifiers_builders = {}
