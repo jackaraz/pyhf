@@ -88,6 +88,7 @@ def _nominal_and_modifiers_from_spec(modifier_set, config, spec, batch_size):
     helper = {}
     for c in spec['channels']:
         for s in c['samples']:
+            moddict = {}
             for x in s['modifiers']:
                 if x['type'] not in modifier_set:
                     raise exceptions.InvalidModifier
@@ -164,10 +165,10 @@ class _ModelConfig(_ChannelSummaryMixin):
             'modifier_settings', default_modifier_settings
         )
 
-        # if config_kwargs:
-        #     raise exceptions.Unsupported(
-        #         f"Unsupported options were passed in: {list(config_kwargs.keys())}."
-        #     )
+        if config_kwargs:
+            raise exceptions.Unsupported(
+                f"Unsupported options were passed in: {list(config_kwargs.keys())}."
+            )
 
         self.par_map = {}
         self.par_order = []
@@ -489,13 +490,13 @@ class Model:
         if validate:
             utils.validate(self.spec, self.schema, version=self.version)
         # build up our representation of the specification
+        poi_name = config_kwargs.pop('poi_name', 'mu')
         self.config = _ModelConfig(self.spec, **config_kwargs)
 
         modifiers, _nominal_rates = _nominal_and_modifiers_from_spec(
             modifier_set, self.config, self.spec, self.batch_size
         )
 
-        poi_name = config_kwargs.pop('poi_name', 'mu')
         if poi_name is not None:
             self.config.set_poi(poi_name)
 
