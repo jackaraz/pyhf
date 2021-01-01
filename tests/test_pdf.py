@@ -557,7 +557,7 @@ def test_invalid_modifier():
         ]
     }
     with pytest.raises(pyhf.exceptions.InvalidModifier):
-        pyhf.pdf.Model(spec,validate=False) #don't validate to delay exception
+        pyhf.pdf.Model(spec, validate=False)  # don't validate to delay exception
 
 
 def test_invalid_modifier_name_resuse():
