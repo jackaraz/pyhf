@@ -53,7 +53,9 @@ class _nominal_builder:
             else [0.0] * self.config.channel_nbins[channel]
         )
         if not len(nom) == self.config.channel_nbins[channel]:
-            raise exceptions.InvalidModel(f'expected {self.config.channel_nbins[channel]} size sample data but got {len(nom)}')
+            raise exceptions.InvalidModel(
+                f'expected {self.config.channel_nbins[channel]} size sample data but got {len(nom)}'
+            )
         self.mega_samples[sample]['nom'] += nom
 
     def finalize(self):

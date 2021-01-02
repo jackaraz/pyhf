@@ -761,7 +761,9 @@ def test_combine_workspace(workspace_factory, join):
     combined = pyhf.Workspace.combine(ws, new_ws, join=join)
     assert set(combined.channels) == set(ws.channels + new_ws.channels)
     assert set(combined.samples) == set(ws.samples + new_ws.samples)
-    assert set(combined.model().config.parameters) == set(ws.model().config.parameters + new_ws.model().config.parameters)
+    assert set(combined.model().config.parameters) == set(
+        ws.model().config.parameters + new_ws.model().config.parameters
+    )
 
 
 def test_workspace_equality(workspace_factory):

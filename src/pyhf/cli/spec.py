@@ -81,7 +81,12 @@ def inspect(workspace, output_file, measurement):
 
     model = ws.model()
 
-    result['parameters'] = sorted([(k,parset_descr[type(v['paramset'])]) for k,v in model.config.par_map.items()])
+    result['parameters'] = sorted(
+        [
+            (k, parset_descr[type(v['paramset'])])
+            for k, v in model.config.par_map.items()
+        ]
+    )
     result['systematics'] = [
         (
             parameter[0],
@@ -98,7 +103,7 @@ def inspect(workspace, output_file, measurement):
 
     maxlen_channels = max(map(len, ws.channels))
     maxlen_samples = max(map(len, ws.samples))
-    maxlen_parameters = max(map(len, [p for p,_ in result['parameters']]))
+    maxlen_parameters = max(map(len, [p for p, _ in result['parameters']]))
     maxlen_measurements = max(map(lambda x: len(x[0]), result['measurements']))
     maxlen = max(
         [maxlen_channels, maxlen_samples, maxlen_parameters, maxlen_measurements]
