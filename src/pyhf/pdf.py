@@ -115,18 +115,18 @@ def _nominal_and_modifiers_from_spec(modifier_set, config, spec, batch_size):
                 modifiers_builders[mtype].append(key, c, s, thismod, defined_samp)
     nominal_rates = nominal.finalize()
 
-    _parset_reqs = {}
+    _required_paramsets = {}
 
     for v in list(modifiers_builders.values()):
         for pname, req_list in v.required_parsets.items():
-            _parset_reqs.setdefault(pname, [])
-            _parset_reqs[pname] += req_list
+            _required_paramsets.setdefault(pname, [])
+            _required_paramsets[pname] += req_list
 
     user_parameters = spec.get('parameters', [])
 
     _required_paramsets = _finalize_parameters(
         user_parameters,
-        _parset_reqs,
+        _required_paramsets,
         config.channel_nbins,
     )
     if not _required_paramsets:
@@ -180,6 +180,7 @@ class _ModelConfig(_ChannelSummaryMixin):
     def set_parameters(self, _required_paramsets):
         self._create_and_register_paramsets(_required_paramsets)
         self.npars = len(self.suggested_init())
+        self.parameters = sorted([k for k in self.par_map.keys()])
 
     def suggested_init(self):
         init = []
