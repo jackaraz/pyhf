@@ -8,8 +8,11 @@ extras_require = {
     ],
     'torch': ['torch~=1.2'],
     'jax': ['jax~=0.2.4', 'jaxlib~=0.1.56'],
-    'xmlio': ['uproot3~=3.14'],  # Future proof against uproot4 API changes
-    'minuit': ['iminuit~=1.5.3'],
+    'xmlio': [
+        'uproot3~=3.14',
+        'uproot~=4.0',
+    ],  # uproot3 required until writing to ROOT supported in uproot4
+    'minuit': ['iminuit~=2.1'],
 }
 extras_require['backends'] = sorted(
     set(
@@ -46,16 +49,19 @@ extras_require['test'] = sorted(
     )
 )
 extras_require['docs'] = sorted(
-    {
-        'sphinx>=3.1.2',
-        'sphinxcontrib-bibtex~=1.0',
-        'sphinx-click',
-        'sphinx_rtd_theme',
-        'nbsphinx',
-        'ipywidgets',
-        'sphinx-issues',
-        'sphinx-copybutton>0.2.9',
-    }
+    set(
+        extras_require['xmlio']
+        + [
+            'sphinx>=3.1.2',
+            'sphinxcontrib-bibtex~=1.0',
+            'sphinx-click',
+            'sphinx_rtd_theme',
+            'nbsphinx',
+            'ipywidgets',
+            'sphinx-issues',
+            'sphinx-copybutton>0.2.9',
+        ]
+    )
 )
 extras_require['develop'] = sorted(
     set(
