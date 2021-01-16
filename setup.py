@@ -39,12 +39,10 @@ extras_require['test'] = sorted(
             'pytest-console-scripts',
             'pytest-mpl',
             'pydocstyle',
-            'coverage>=4.0',  # coveralls
             'papermill~=2.0',
             'nteract-scrapbook~=0.2',
             'jupyter',
             'graphviz',
-            'jsonpatch',
         ]
     )
 )
@@ -53,7 +51,7 @@ extras_require['docs'] = sorted(
         extras_require['xmlio']
         + [
             'sphinx>=3.1.2',
-            'sphinxcontrib-bibtex~=1.0',
+            'sphinxcontrib-bibtex~=2.1',
             'sphinx-click',
             'sphinx_rtd_theme',
             'nbsphinx',
