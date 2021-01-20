@@ -104,6 +104,7 @@ Inference
 
 .. autosummary::
    :toctree: _generated/
+   :template: modifierclass.rst
 
    test_statistics.q0
    test_statistics.qmu
